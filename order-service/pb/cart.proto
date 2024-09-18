@@ -4,54 +4,47 @@ option go_package = "/pb";
 
 import "google/protobuf/timestamp.proto";
 
-// Book service definition
-service BookService {
-    rpc AddBook(AddBookRequest) returns (AddBookResponse);
-    rpc GetBook(GetBookRequest) returns (GetBookResponse);
-    rpc UpdateBook(UpdateBookRequest) returns (UpdateBookResponse);
-    rpc DeleteBook(DeleteBookRequest) returns (DeleteBookResponse);
+// Cart service definition
+service CartService {
+    rpc AddCart(AddCartRequest) returns (AddCartResponse);
+    rpc SubstractCart(SubstractCartRequest) returns (SubstractCartResponse);
+    rpc GetCart(GetCartRequest) returns (GetCartResponse);
 }
 
 // Request and Response messages
-message AddBookRequest {
-    string title = 1;
-    string author = 2;
+message AddCartRequest {
+    int32 user_id = 1;
+    int32 shoes_id = 2;
+    int32 quantity = 3;
 }
 
-message AddBookResponse {
-    string error = 1;
-    string message = 2;
+message AddCartResponse {
+    CartItem item = 1;  // Use singular 'item' for a single CartItem
 }
 
-message GetBookRequest {
-    string id = 1;
+message SubstractCartRequest {
+    int32 user_id = 1;
+    int32 shoes_id = 2;
+    int32 quantity = 3;
 }
 
-message GetBookResponse {
-    string id = 1;
-    string title = 2;
-    string author = 3;
-    google.protobuf.Timestamp published_date = 4;
-    string status = 5;
-    string user_id = 6; // optional
+message SubstractCartResponse {
+    CartItem item = 1;  // Use singular 'item' for a single CartItem
 }
 
-message UpdateBookRequest {
-    string id = 1;
-    string status = 2;
-    string user_id = 3; // optional
+message GetCartRequest {
+    int32 user_id = 1;
 }
 
-message UpdateBookResponse {
-    string error = 1;
-    string message = 2;
+// Define a CartItem message to represent a single item in the cart
+message CartItem {
+    int32 cart_id = 1;
+    int32 user_id = 2;
+    int32 shoes_id = 3;
+    int32 quantity = 4;
 }
 
-message DeleteBookRequest {
-    string id = 1;
-}
-
-message DeleteBookResponse {
-    string error = 1;
-    string message = 2;
+// Use repeated to return a list of CartItems in GetCartResponse
+message GetCartResponse {
+    repeated CartItem items = 1;  // Correct use of repeated for multiple items
 }
