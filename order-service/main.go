@@ -1,7 +1,19 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"order-service/config"
+	"order-service/database"
+)
 
 func main() {
-	fmt.Println("Hello World")
+
+	config.InitConfig()
+	err := database.InitDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db := database.GetDB()
+	defer db.Close()
 }
