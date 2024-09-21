@@ -16,6 +16,8 @@ var DELIVERY_API_KEY string
 
 var PORT string
 var DELIVERY_COST_URL string
+var DELIVERY_PROVINCE_URL string
+var DELIVERY_CITY_URL string
 
 func InitConfig() {
 	err := godotenv.Load("config/.env")
@@ -29,6 +31,8 @@ func InitConfig() {
 	DB_USER = os.Getenv("DB_USER")
 	DB_PASSWORD = os.Getenv("DB_PASSWORD")
 	DELIVERY_COST_URL = os.Getenv("DELIVERY_COST_URL")
+	DELIVERY_PROVINCE_URL = os.Getenv("DELIVERY_PROVINCE_URL")
+	DELIVERY_CITY_URL = os.Getenv("DELIVERY_CITY_URL")
 	DELIVERY_API_KEY = os.Getenv("DELIVERY_API_KEY")
 	PORT = os.Getenv("PORT")
 

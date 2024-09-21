@@ -52,6 +52,8 @@ message City {
     string cityName = 2;
     string provinceId = 3;
     string provinceName = 4;
+    string type = 5;
+    string postalCode = 6;
 }
 
 message GetProvinceResponse {
