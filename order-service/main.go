@@ -24,12 +24,14 @@ func main() {
 	db := database.GetDB()
 	defer db.Close()
 
-	cartHandler := handler.NewUserHandler(db)
+	cartHandler := handler.NewCartHandler(db)
+	deliveryHandler := handler.NewDeliveryHandler(db)
 
 	// s := grpc.NewServer()
 	s := grpc.NewServer()
 
 	pb.RegisterCartServiceServer(s, cartHandler)
+	pb.RegisterDeliveryServiceServer(s, deliveryHandler)
 
 	reflection.Register(s)
 

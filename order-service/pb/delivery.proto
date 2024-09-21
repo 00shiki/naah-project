@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+option go_package = "/pb";
+
+service DeliveryService {
+    rpc DeliveryCost(DeliveryCostRequest) returns (DeliveryCostResponse);
+    rpc GetProvince(Empty) returns (GetProvinceResponse);
+    rpc GetCity(GetCityRequest) returns (GetCityResponse);
+}
+
+message Empty {
+
+}
+
+
+message DeliveryCostRequest {
+    string originCityId = 1;
+    string destinationCityId = 2;
+    repeated int32 cartId = 3;
+    string courier = 4;
+}
+
+message DeliveryItem {
+    string cityId = 1;
+    string cityName = 2;
+    string provinceId = 3;
+    string provinceName = 4;
+    string type = 5;
+    string postalCode = 6;
+}
+
+message ServiceItem {
+    string serviceName = 1;
+    string description = 2;
+    int32 cost = 3;
+    string etd = 4;
+}
+
+message DeliveryCostResponse {
+    DeliveryItem origin = 1;
+    DeliveryItem destination = 2;
+    repeated ServiceItem service = 3;
+}
+
+message Province {
+    string provinceId = 1;
+    string provinceName = 2;
+}
+
+message City {
+    string cityId = 1;
+    string cityName = 2;
+    string provinceId = 3;
+    string provinceName = 4;
+}
+
+message GetProvinceResponse {
+    repeated Province provinces = 1;
+}
+
+message GetCityRequest{
+    string provinceId = 1;
+}
+
+message GetCityResponse {
+    repeated City cities = 1;
+}

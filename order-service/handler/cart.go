@@ -10,22 +10,22 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type UserHandler struct {
+type CartHandler struct {
 	db *sql.DB
 }
 
-type CartItem struct {
-	cart_id  int32
-	user_id  int32
-	shoes_id int32
-	quantity int32
+// type CartItem struct {
+// 	cart_id  int32
+// 	user_id  int32
+// 	shoes_id int32
+// 	quantity int32
+// }
+
+func NewCartHandler(db *sql.DB) *CartHandler {
+	return &CartHandler{db}
 }
 
-func NewUserHandler(db *sql.DB) *UserHandler {
-	return &UserHandler{db}
-}
-
-func (h *UserHandler) AddCart(ctx context.Context, req *pb.AddCartRequest) (*pb.AddCartResponse, error) {
+func (h *CartHandler) AddCart(ctx context.Context, req *pb.AddCartRequest) (*pb.AddCartResponse, error) {
 	var cartId int
 	var currentQuantity int
 
@@ -87,7 +87,7 @@ func (h *UserHandler) AddCart(ctx context.Context, req *pb.AddCartRequest) (*pb.
 	return response, nil
 }
 
-func (h *UserHandler) SubtractCart(ctx context.Context, req *pb.SubtractCartRequest) (*pb.SubtractCartResponse, error) {
+func (h *CartHandler) SubtractCart(ctx context.Context, req *pb.SubtractCartRequest) (*pb.SubtractCartResponse, error) {
 	var cartId int
 	var currentQuantity int
 
@@ -148,7 +148,7 @@ func (h *UserHandler) SubtractCart(ctx context.Context, req *pb.SubtractCartRequ
 	return response, nil
 }
 
-func (h *UserHandler) GetCartsByUserId(ctx context.Context, req *pb.GetCartsByUserIdRequest) (*pb.GetCartsByUserIdResponse, error) {
+func (h *CartHandler) GetCartsByUserId(ctx context.Context, req *pb.GetCartsByUserIdRequest) (*pb.GetCartsByUserIdResponse, error) {
 	query := "SELECT cart_id, user_id, shoe_id, quantity FROM cart WHERE user_id = ?"
 	rows, err := h.db.Query(query, req.UserId)
 	if err != nil {
@@ -178,7 +178,7 @@ func (h *UserHandler) GetCartsByUserId(ctx context.Context, req *pb.GetCartsByUs
 	return response, nil
 }
 
-func (h *UserHandler) DeleteCartByCartId(ctx context.Context, req *pb.DeleteCartByCartIdRequest) (*pb.DeleteCartByCartIdResponse, error) {
+func (h *CartHandler) DeleteCartByCartId(ctx context.Context, req *pb.DeleteCartByCartIdRequest) (*pb.DeleteCartByCartIdResponse, error) {
 	query := "DELETE FROM cart WHERE cart_id = ?"
 	result, err := h.db.Exec(query, req.CartId)
 	if err != nil {
