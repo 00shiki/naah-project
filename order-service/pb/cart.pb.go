@@ -21,6 +21,78 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Define a CartItem message to represent a single item in the cart
+type CartItem struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CartId   int32 `protobuf:"varint,1,opt,name=cart_id,json=cartId,proto3" json:"cart_id,omitempty"`
+	UserId   int32 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	ShoeId   int32 `protobuf:"varint,3,opt,name=shoe_id,json=shoeId,proto3" json:"shoe_id,omitempty"`
+	Quantity int32 `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
+}
+
+func (x *CartItem) Reset() {
+	*x = CartItem{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cart_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CartItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CartItem) ProtoMessage() {}
+
+func (x *CartItem) ProtoReflect() protoreflect.Message {
+	mi := &file_cart_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CartItem.ProtoReflect.Descriptor instead.
+func (*CartItem) Descriptor() ([]byte, []int) {
+	return file_cart_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *CartItem) GetCartId() int32 {
+	if x != nil {
+		return x.CartId
+	}
+	return 0
+}
+
+func (x *CartItem) GetUserId() int32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *CartItem) GetShoeId() int32 {
+	if x != nil {
+		return x.ShoeId
+	}
+	return 0
+}
+
+func (x *CartItem) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
 // Request and Response messages
 type AddCartRequest struct {
 	state         protoimpl.MessageState
@@ -28,14 +100,14 @@ type AddCartRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	UserId   int32 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	ShoesId  int32 `protobuf:"varint,2,opt,name=shoes_id,json=shoesId,proto3" json:"shoes_id,omitempty"`
+	ShoeId   int32 `protobuf:"varint,2,opt,name=shoe_id,json=shoeId,proto3" json:"shoe_id,omitempty"`
 	Quantity int32 `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`
 }
 
 func (x *AddCartRequest) Reset() {
 	*x = AddCartRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cart_proto_msgTypes[0]
+		mi := &file_cart_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -48,7 +120,7 @@ func (x *AddCartRequest) String() string {
 func (*AddCartRequest) ProtoMessage() {}
 
 func (x *AddCartRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cart_proto_msgTypes[0]
+	mi := &file_cart_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +133,7 @@ func (x *AddCartRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddCartRequest.ProtoReflect.Descriptor instead.
 func (*AddCartRequest) Descriptor() ([]byte, []int) {
-	return file_cart_proto_rawDescGZIP(), []int{0}
+	return file_cart_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *AddCartRequest) GetUserId() int32 {
@@ -71,9 +143,9 @@ func (x *AddCartRequest) GetUserId() int32 {
 	return 0
 }
 
-func (x *AddCartRequest) GetShoesId() int32 {
+func (x *AddCartRequest) GetShoeId() int32 {
 	if x != nil {
-		return x.ShoesId
+		return x.ShoeId
 	}
 	return 0
 }
@@ -96,7 +168,7 @@ type AddCartResponse struct {
 func (x *AddCartResponse) Reset() {
 	*x = AddCartResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cart_proto_msgTypes[1]
+		mi := &file_cart_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -109,7 +181,7 @@ func (x *AddCartResponse) String() string {
 func (*AddCartResponse) ProtoMessage() {}
 
 func (x *AddCartResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cart_proto_msgTypes[1]
+	mi := &file_cart_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -122,7 +194,7 @@ func (x *AddCartResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddCartResponse.ProtoReflect.Descriptor instead.
 func (*AddCartResponse) Descriptor() ([]byte, []int) {
-	return file_cart_proto_rawDescGZIP(), []int{1}
+	return file_cart_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AddCartResponse) GetItem() *CartItem {
@@ -132,79 +204,18 @@ func (x *AddCartResponse) GetItem() *CartItem {
 	return nil
 }
 
-type SubstractCartRequest struct {
+type SubtractCartRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	UserId   int32 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	ShoesId  int32 `protobuf:"varint,2,opt,name=shoes_id,json=shoesId,proto3" json:"shoes_id,omitempty"`
+	ShoeId   int32 `protobuf:"varint,2,opt,name=shoe_id,json=shoeId,proto3" json:"shoe_id,omitempty"`
 	Quantity int32 `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`
 }
 
-func (x *SubstractCartRequest) Reset() {
-	*x = SubstractCartRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_cart_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *SubstractCartRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SubstractCartRequest) ProtoMessage() {}
-
-func (x *SubstractCartRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cart_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SubstractCartRequest.ProtoReflect.Descriptor instead.
-func (*SubstractCartRequest) Descriptor() ([]byte, []int) {
-	return file_cart_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *SubstractCartRequest) GetUserId() int32 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
-}
-
-func (x *SubstractCartRequest) GetShoesId() int32 {
-	if x != nil {
-		return x.ShoesId
-	}
-	return 0
-}
-
-func (x *SubstractCartRequest) GetQuantity() int32 {
-	if x != nil {
-		return x.Quantity
-	}
-	return 0
-}
-
-type SubstractCartResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Item *CartItem `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"` // Use singular 'item' for a single CartItem
-}
-
-func (x *SubstractCartResponse) Reset() {
-	*x = SubstractCartResponse{}
+func (x *SubtractCartRequest) Reset() {
+	*x = SubtractCartRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_cart_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -212,13 +223,13 @@ func (x *SubstractCartResponse) Reset() {
 	}
 }
 
-func (x *SubstractCartResponse) String() string {
+func (x *SubtractCartRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SubstractCartResponse) ProtoMessage() {}
+func (*SubtractCartRequest) ProtoMessage() {}
 
-func (x *SubstractCartResponse) ProtoReflect() protoreflect.Message {
+func (x *SubtractCartRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_cart_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -230,28 +241,42 @@ func (x *SubstractCartResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SubstractCartResponse.ProtoReflect.Descriptor instead.
-func (*SubstractCartResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SubtractCartRequest.ProtoReflect.Descriptor instead.
+func (*SubtractCartRequest) Descriptor() ([]byte, []int) {
 	return file_cart_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *SubstractCartResponse) GetItem() *CartItem {
+func (x *SubtractCartRequest) GetUserId() int32 {
 	if x != nil {
-		return x.Item
+		return x.UserId
 	}
-	return nil
+	return 0
 }
 
-type GetCartRequest struct {
+func (x *SubtractCartRequest) GetShoeId() int32 {
+	if x != nil {
+		return x.ShoeId
+	}
+	return 0
+}
+
+func (x *SubtractCartRequest) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+type SubtractCartResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId int32 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Item *CartItem `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"` // Use singular 'item' for a single CartItem
 }
 
-func (x *GetCartRequest) Reset() {
-	*x = GetCartRequest{}
+func (x *SubtractCartResponse) Reset() {
+	*x = SubtractCartResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_cart_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -259,13 +284,13 @@ func (x *GetCartRequest) Reset() {
 	}
 }
 
-func (x *GetCartRequest) String() string {
+func (x *SubtractCartResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetCartRequest) ProtoMessage() {}
+func (*SubtractCartResponse) ProtoMessage() {}
 
-func (x *GetCartRequest) ProtoReflect() protoreflect.Message {
+func (x *SubtractCartResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_cart_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -277,32 +302,28 @@ func (x *GetCartRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetCartRequest.ProtoReflect.Descriptor instead.
-func (*GetCartRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SubtractCartResponse.ProtoReflect.Descriptor instead.
+func (*SubtractCartResponse) Descriptor() ([]byte, []int) {
 	return file_cart_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetCartRequest) GetUserId() int32 {
+func (x *SubtractCartResponse) GetItem() *CartItem {
 	if x != nil {
-		return x.UserId
+		return x.Item
 	}
-	return 0
+	return nil
 }
 
-// Define a CartItem message to represent a single item in the cart
-type CartItem struct {
+type GetCartsByUserIdRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	CartId   int32 `protobuf:"varint,1,opt,name=cart_id,json=cartId,proto3" json:"cart_id,omitempty"`
-	UserId   int32 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	ShoesId  int32 `protobuf:"varint,3,opt,name=shoes_id,json=shoesId,proto3" json:"shoes_id,omitempty"`
-	Quantity int32 `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UserId int32 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 }
 
-func (x *CartItem) Reset() {
-	*x = CartItem{}
+func (x *GetCartsByUserIdRequest) Reset() {
+	*x = GetCartsByUserIdRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_cart_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -310,13 +331,13 @@ func (x *CartItem) Reset() {
 	}
 }
 
-func (x *CartItem) String() string {
+func (x *GetCartsByUserIdRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CartItem) ProtoMessage() {}
+func (*GetCartsByUserIdRequest) ProtoMessage() {}
 
-func (x *CartItem) ProtoReflect() protoreflect.Message {
+func (x *GetCartsByUserIdRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_cart_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -328,50 +349,28 @@ func (x *CartItem) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CartItem.ProtoReflect.Descriptor instead.
-func (*CartItem) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetCartsByUserIdRequest.ProtoReflect.Descriptor instead.
+func (*GetCartsByUserIdRequest) Descriptor() ([]byte, []int) {
 	return file_cart_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *CartItem) GetCartId() int32 {
-	if x != nil {
-		return x.CartId
-	}
-	return 0
-}
-
-func (x *CartItem) GetUserId() int32 {
+func (x *GetCartsByUserIdRequest) GetUserId() int32 {
 	if x != nil {
 		return x.UserId
 	}
 	return 0
 }
 
-func (x *CartItem) GetShoesId() int32 {
-	if x != nil {
-		return x.ShoesId
-	}
-	return 0
-}
-
-func (x *CartItem) GetQuantity() int32 {
-	if x != nil {
-		return x.Quantity
-	}
-	return 0
-}
-
-// Use repeated to return a list of CartItems in GetCartResponse
-type GetCartResponse struct {
+type GetCartsByUserIdResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Items []*CartItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"` // Correct use of repeated for multiple items
+	Carts []*CartItem `protobuf:"bytes,1,rep,name=carts,proto3" json:"carts,omitempty"`
 }
 
-func (x *GetCartResponse) Reset() {
-	*x = GetCartResponse{}
+func (x *GetCartsByUserIdResponse) Reset() {
+	*x = GetCartsByUserIdResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_cart_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -379,13 +378,13 @@ func (x *GetCartResponse) Reset() {
 	}
 }
 
-func (x *GetCartResponse) String() string {
+func (x *GetCartsByUserIdResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetCartResponse) ProtoMessage() {}
+func (*GetCartsByUserIdResponse) ProtoMessage() {}
 
-func (x *GetCartResponse) ProtoReflect() protoreflect.Message {
+func (x *GetCartsByUserIdResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_cart_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -397,16 +396,110 @@ func (x *GetCartResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetCartResponse.ProtoReflect.Descriptor instead.
-func (*GetCartResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetCartsByUserIdResponse.ProtoReflect.Descriptor instead.
+func (*GetCartsByUserIdResponse) Descriptor() ([]byte, []int) {
 	return file_cart_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *GetCartResponse) GetItems() []*CartItem {
+func (x *GetCartsByUserIdResponse) GetCarts() []*CartItem {
 	if x != nil {
-		return x.Items
+		return x.Carts
 	}
 	return nil
+}
+
+type DeleteCartByCartIdRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CartId int32 `protobuf:"varint,1,opt,name=cart_id,json=cartId,proto3" json:"cart_id,omitempty"`
+}
+
+func (x *DeleteCartByCartIdRequest) Reset() {
+	*x = DeleteCartByCartIdRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cart_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteCartByCartIdRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCartByCartIdRequest) ProtoMessage() {}
+
+func (x *DeleteCartByCartIdRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cart_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCartByCartIdRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCartByCartIdRequest) Descriptor() ([]byte, []int) {
+	return file_cart_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *DeleteCartByCartIdRequest) GetCartId() int32 {
+	if x != nil {
+		return x.CartId
+	}
+	return 0
+}
+
+type DeleteCartByCartIdResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+}
+
+func (x *DeleteCartByCartIdResponse) Reset() {
+	*x = DeleteCartByCartIdResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cart_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteCartByCartIdResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCartByCartIdResponse) ProtoMessage() {}
+
+func (x *DeleteCartByCartIdResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cart_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCartByCartIdResponse.ProtoReflect.Descriptor instead.
+func (*DeleteCartByCartIdResponse) Descriptor() ([]byte, []int) {
+	return file_cart_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DeleteCartByCartIdResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
 }
 
 var File_cart_proto protoreflect.FileDescriptor
@@ -414,51 +507,65 @@ var File_cart_proto protoreflect.FileDescriptor
 var file_cart_proto_rawDesc = []byte{
 	0x0a, 0x0a, 0x63, 0x61, 0x72, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1f, 0x67, 0x6f,
 	0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69,
-	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x60, 0x0a,
-	0x0e, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
-	0x17, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
-	0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x73, 0x68, 0x6f, 0x65,
-	0x73, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x73, 0x68, 0x6f, 0x65,
-	0x73, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18,
-	0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22,
-	0x30, 0x0a, 0x0f, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x1d, 0x0a, 0x04, 0x69, 0x74, 0x65, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x09, 0x2e, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x04, 0x69, 0x74, 0x65,
-	0x6d, 0x22, 0x66, 0x0a, 0x14, 0x53, 0x75, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x43, 0x61,
+	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x71, 0x0a,
+	0x08, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x17, 0x0a, 0x07, 0x63, 0x61, 0x72,
+	0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x63, 0x61, 0x72, 0x74,
+	0x49, 0x64, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x05, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x17, 0x0a, 0x07, 0x73,
+	0x68, 0x6f, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x73, 0x68,
+	0x6f, 0x65, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79,
+	0x22, 0x5e, 0x0a, 0x0e, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x05, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x17, 0x0a, 0x07, 0x73,
+	0x68, 0x6f, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x73, 0x68,
+	0x6f, 0x65, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79,
+	0x22, 0x30, 0x0a, 0x0f, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x1d, 0x0a, 0x04, 0x69, 0x74, 0x65, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x09, 0x2e, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x04, 0x69, 0x74,
+	0x65, 0x6d, 0x22, 0x63, 0x0a, 0x13, 0x53, 0x75, 0x62, 0x74, 0x72, 0x61, 0x63, 0x74, 0x43, 0x61,
 	0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73, 0x65,
 	0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72,
-	0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x73, 0x68, 0x6f, 0x65, 0x73, 0x5f, 0x69, 0x64, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x73, 0x68, 0x6f, 0x65, 0x73, 0x49, 0x64, 0x12, 0x1a, 0x0a,
-	0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52,
-	0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x36, 0x0a, 0x15, 0x53, 0x75, 0x62,
-	0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x1d, 0x0a, 0x04, 0x69, 0x74, 0x65, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x09, 0x2e, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x04, 0x69, 0x74, 0x65,
-	0x6d, 0x22, 0x29, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x22, 0x73, 0x0a, 0x08,
-	0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x17, 0x0a, 0x07, 0x63, 0x61, 0x72, 0x74,
-	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x63, 0x61, 0x72, 0x74, 0x49,
-	0x64, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x05, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x73, 0x68,
-	0x6f, 0x65, 0x73, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x73, 0x68,
-	0x6f, 0x65, 0x73, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74,
-	0x79, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x71, 0x75, 0x61, 0x6e, 0x74, 0x69, 0x74,
-	0x79, 0x22, 0x32, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x01, 0x20,
-	0x03, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x05,
-	0x69, 0x74, 0x65, 0x6d, 0x73, 0x32, 0xa9, 0x01, 0x0a, 0x0b, 0x43, 0x61, 0x72, 0x74, 0x53, 0x65,
-	0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2c, 0x0a, 0x07, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74,
-	0x12, 0x0f, 0x2e, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x10, 0x2e, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x3e, 0x0a, 0x0d, 0x53, 0x75, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74,
-	0x43, 0x61, 0x72, 0x74, 0x12, 0x15, 0x2e, 0x53, 0x75, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74,
-	0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x53, 0x75,
-	0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x2c, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x43, 0x61, 0x72, 0x74, 0x12, 0x0f,
-	0x2e, 0x47, 0x65, 0x74, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x10, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x42, 0x05, 0x5a, 0x03, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x49, 0x64, 0x12, 0x17, 0x0a, 0x07, 0x73, 0x68, 0x6f, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x05, 0x52, 0x06, 0x73, 0x68, 0x6f, 0x65, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x71,
+	0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x71,
+	0x75, 0x61, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x35, 0x0a, 0x14, 0x53, 0x75, 0x62, 0x74, 0x72,
+	0x61, 0x63, 0x74, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x1d, 0x0a, 0x04, 0x69, 0x74, 0x65, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e,
+	0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x04, 0x69, 0x74, 0x65, 0x6d, 0x22, 0x32,
+	0x0a, 0x17, 0x47, 0x65, 0x74, 0x43, 0x61, 0x72, 0x74, 0x73, 0x42, 0x79, 0x55, 0x73, 0x65, 0x72,
+	0x49, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73, 0x65,
+	0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72,
+	0x49, 0x64, 0x22, 0x3b, 0x0a, 0x18, 0x47, 0x65, 0x74, 0x43, 0x61, 0x72, 0x74, 0x73, 0x42, 0x79,
+	0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f,
+	0x0a, 0x05, 0x63, 0x61, 0x72, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x09, 0x2e,
+	0x43, 0x61, 0x72, 0x74, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x05, 0x63, 0x61, 0x72, 0x74, 0x73, 0x22,
+	0x34, 0x0a, 0x19, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74, 0x42, 0x79, 0x43,
+	0x61, 0x72, 0x74, 0x49, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07,
+	0x63, 0x61, 0x72, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x63,
+	0x61, 0x72, 0x74, 0x49, 0x64, 0x22, 0x36, 0x0a, 0x1a, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43,
+	0x61, 0x72, 0x74, 0x42, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x32, 0x90, 0x02,
+	0x0a, 0x0b, 0x43, 0x61, 0x72, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2c, 0x0a,
+	0x07, 0x41, 0x64, 0x64, 0x43, 0x61, 0x72, 0x74, 0x12, 0x0f, 0x2e, 0x41, 0x64, 0x64, 0x43, 0x61,
+	0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x10, 0x2e, 0x41, 0x64, 0x64, 0x43,
+	0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3b, 0x0a, 0x0c, 0x53,
+	0x75, 0x62, 0x74, 0x72, 0x61, 0x63, 0x74, 0x43, 0x61, 0x72, 0x74, 0x12, 0x14, 0x2e, 0x53, 0x75,
+	0x62, 0x74, 0x72, 0x61, 0x63, 0x74, 0x43, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x15, 0x2e, 0x53, 0x75, 0x62, 0x74, 0x72, 0x61, 0x63, 0x74, 0x43, 0x61, 0x72, 0x74,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x47, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x43,
+	0x61, 0x72, 0x74, 0x73, 0x42, 0x79, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x18, 0x2e, 0x47,
+	0x65, 0x74, 0x43, 0x61, 0x72, 0x74, 0x73, 0x42, 0x79, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x61, 0x72, 0x74,
+	0x73, 0x42, 0x79, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x4d, 0x0a, 0x12, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74, 0x42,
+	0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x64, 0x12, 0x1a, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
+	0x43, 0x61, 0x72, 0x74, 0x42, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x64, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x61, 0x72, 0x74,
+	0x42, 0x79, 0x43, 0x61, 0x72, 0x74, 0x49, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x42, 0x05, 0x5a, 0x03, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -473,28 +580,32 @@ func file_cart_proto_rawDescGZIP() []byte {
 	return file_cart_proto_rawDescData
 }
 
-var file_cart_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_cart_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_cart_proto_goTypes = []any{
-	(*AddCartRequest)(nil),        // 0: AddCartRequest
-	(*AddCartResponse)(nil),       // 1: AddCartResponse
-	(*SubstractCartRequest)(nil),  // 2: SubstractCartRequest
-	(*SubstractCartResponse)(nil), // 3: SubstractCartResponse
-	(*GetCartRequest)(nil),        // 4: GetCartRequest
-	(*CartItem)(nil),              // 5: CartItem
-	(*GetCartResponse)(nil),       // 6: GetCartResponse
+	(*CartItem)(nil),                   // 0: CartItem
+	(*AddCartRequest)(nil),             // 1: AddCartRequest
+	(*AddCartResponse)(nil),            // 2: AddCartResponse
+	(*SubtractCartRequest)(nil),        // 3: SubtractCartRequest
+	(*SubtractCartResponse)(nil),       // 4: SubtractCartResponse
+	(*GetCartsByUserIdRequest)(nil),    // 5: GetCartsByUserIdRequest
+	(*GetCartsByUserIdResponse)(nil),   // 6: GetCartsByUserIdResponse
+	(*DeleteCartByCartIdRequest)(nil),  // 7: DeleteCartByCartIdRequest
+	(*DeleteCartByCartIdResponse)(nil), // 8: DeleteCartByCartIdResponse
 }
 var file_cart_proto_depIdxs = []int32{
-	5, // 0: AddCartResponse.item:type_name -> CartItem
-	5, // 1: SubstractCartResponse.item:type_name -> CartItem
-	5, // 2: GetCartResponse.items:type_name -> CartItem
-	0, // 3: CartService.AddCart:input_type -> AddCartRequest
-	2, // 4: CartService.SubstractCart:input_type -> SubstractCartRequest
-	4, // 5: CartService.GetCart:input_type -> GetCartRequest
-	1, // 6: CartService.AddCart:output_type -> AddCartResponse
-	3, // 7: CartService.SubstractCart:output_type -> SubstractCartResponse
-	6, // 8: CartService.GetCart:output_type -> GetCartResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
+	0, // 0: AddCartResponse.item:type_name -> CartItem
+	0, // 1: SubtractCartResponse.item:type_name -> CartItem
+	0, // 2: GetCartsByUserIdResponse.carts:type_name -> CartItem
+	1, // 3: CartService.AddCart:input_type -> AddCartRequest
+	3, // 4: CartService.SubtractCart:input_type -> SubtractCartRequest
+	5, // 5: CartService.GetCartsByUserId:input_type -> GetCartsByUserIdRequest
+	7, // 6: CartService.DeleteCartByCartId:input_type -> DeleteCartByCartIdRequest
+	2, // 7: CartService.AddCart:output_type -> AddCartResponse
+	4, // 8: CartService.SubtractCart:output_type -> SubtractCartResponse
+	6, // 9: CartService.GetCartsByUserId:output_type -> GetCartsByUserIdResponse
+	8, // 10: CartService.DeleteCartByCartId:output_type -> DeleteCartByCartIdResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -507,66 +618,6 @@ func file_cart_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_cart_proto_msgTypes[0].Exporter = func(v any, i int) any {
-			switch v := v.(*AddCartRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_cart_proto_msgTypes[1].Exporter = func(v any, i int) any {
-			switch v := v.(*AddCartResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_cart_proto_msgTypes[2].Exporter = func(v any, i int) any {
-			switch v := v.(*SubstractCartRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_cart_proto_msgTypes[3].Exporter = func(v any, i int) any {
-			switch v := v.(*SubstractCartResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_cart_proto_msgTypes[4].Exporter = func(v any, i int) any {
-			switch v := v.(*GetCartRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_cart_proto_msgTypes[5].Exporter = func(v any, i int) any {
 			switch v := v.(*CartItem); i {
 			case 0:
 				return &v.state
@@ -578,8 +629,92 @@ func file_cart_proto_init() {
 				return nil
 			}
 		}
+		file_cart_proto_msgTypes[1].Exporter = func(v any, i int) any {
+			switch v := v.(*AddCartRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cart_proto_msgTypes[2].Exporter = func(v any, i int) any {
+			switch v := v.(*AddCartResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cart_proto_msgTypes[3].Exporter = func(v any, i int) any {
+			switch v := v.(*SubtractCartRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cart_proto_msgTypes[4].Exporter = func(v any, i int) any {
+			switch v := v.(*SubtractCartResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cart_proto_msgTypes[5].Exporter = func(v any, i int) any {
+			switch v := v.(*GetCartsByUserIdRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 		file_cart_proto_msgTypes[6].Exporter = func(v any, i int) any {
-			switch v := v.(*GetCartResponse); i {
+			switch v := v.(*GetCartsByUserIdResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cart_proto_msgTypes[7].Exporter = func(v any, i int) any {
+			switch v := v.(*DeleteCartByCartIdRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cart_proto_msgTypes[8].Exporter = func(v any, i int) any {
+			switch v := v.(*DeleteCartByCartIdResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -597,7 +732,7 @@ func file_cart_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_cart_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
