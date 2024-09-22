@@ -28,7 +28,6 @@ func main() {
 	deliveryHandler := handler.NewDeliveryHandler(db)
 	orderHandler := handler.NewOrderHandler(db)
 
-	// s := grpc.NewServer()
 	s := grpc.NewServer()
 
 	pb.RegisterCartServiceServer(s, cartHandler)
@@ -47,6 +46,8 @@ func main() {
 	}
 
 	fmt.Printf("RUNNING ORDER SERVICE ON PORT: %s", port)
+
+	// TODO - Buat scheduler untuk update status delivery
 
 	if err = s.Serve(listen); err != nil {
 		log.Fatal(err)

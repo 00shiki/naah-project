@@ -35,7 +35,7 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 
 	/*
 		 TODO
-		- Buat method Callback Payment
+		- Buat method Callback Payment (tambah email ke pelanggan)
 		- Buat method check order saja
 	*/
 	cartIds := utils.RemoveDuplicates(req.CartIds)
