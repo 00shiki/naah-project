@@ -1,15 +1,21 @@
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
-
 option go_package = "/pb";
 
 service OrderService {
-    rpc AddOrder(google.protobuf.Empty) returns (AddOrderResponse);
+    rpc AddOrder(AddOrderRequest) returns (AddOrderResponse);
 }
 
 message AddOrderRequest {
-
+    int32 userId = 1;
+    string voucherId = 2;
+    repeated int32 cartIds = 3;
+    string courierName = 4;
+	string courierServiceName = 5;
+	string originCityId = 6;
+	string destinationCityId = 7;
+    int32 otherFee = 8;
+    string metadata = 9;
 }
 
 

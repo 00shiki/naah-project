@@ -6,6 +6,7 @@ import (
 	"log"
 	"order-service/pb"
 	"order-service/service"
+	"order-service/utils"
 	"strconv"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -25,9 +26,11 @@ func NewDeliveryHandler(db *sql.DB) *DeliveryHandler {
 func (h *DeliveryHandler) DeliveryCost(ctx context.Context, req *pb.DeliveryCostRequest) (*pb.DeliveryCostResponse, error) {
 	log.Println("DeliveryCost method started")
 
+	cartIds := utils.RemoveDuplicates(req.CartIds)
+
 	// Calculate total weight
 	var weight int32
-	for _, cartID := range req.CartId {
+	for _, cartID := range cartIds {
 		query := "SELECT quantity FROM carts WHERE cart_id = ?"
 		log.Printf("Running query: %s with cart_id: %d", query, cartID)
 
@@ -74,10 +77,10 @@ func (h *DeliveryHandler) DeliveryCost(ctx context.Context, req *pb.DeliveryCost
 		ProvinceId:   apiResponse.Rajaongkir.DestinationDetails.ProvinceID,
 		Type:         apiResponse.Rajaongkir.DestinationDetails.Type,
 	}
-	items := make([]*pb.ServiceItem, len(apiResponse.Rajaongkir.Results[0].Costs))
+	services := make([]*pb.ServiceItem, len(apiResponse.Rajaongkir.Results[0].Costs))
 
 	for i, cost := range apiResponse.Rajaongkir.Results[0].Costs {
-		items[i] = &pb.ServiceItem{
+		services[i] = &pb.ServiceItem{
 			ServiceName: cost.Service,
 			Description: cost.Description,
 			Cost:        int32(cost.Cost[0].Value),
@@ -88,7 +91,7 @@ func (h *DeliveryHandler) DeliveryCost(ctx context.Context, req *pb.DeliveryCost
 	response := &pb.DeliveryCostResponse{
 		Origin:      &origin,
 		Destination: &destination,
-		Service:     items,
+		Service:     services,
 	}
 
 	log.Println("DeliveryCost method finished")

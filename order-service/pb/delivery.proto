@@ -13,7 +13,7 @@ service DeliveryService {
 message DeliveryCostRequest {
     string originCityId = 1;
     string destinationCityId = 2;
-    repeated int32 cartId = 3;
+    repeated int32 cartIds = 3;
     string courier = 4;
 }
 
