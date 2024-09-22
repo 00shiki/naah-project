@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -29,7 +30,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeliveryServiceClient interface {
 	DeliveryCost(ctx context.Context, in *DeliveryCostRequest, opts ...grpc.CallOption) (*DeliveryCostResponse, error)
-	GetProvince(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetProvinceResponse, error)
+	GetProvince(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProvinceResponse, error)
 	GetCity(ctx context.Context, in *GetCityRequest, opts ...grpc.CallOption) (*GetCityResponse, error)
 }
 
@@ -51,7 +52,7 @@ func (c *deliveryServiceClient) DeliveryCost(ctx context.Context, in *DeliveryCo
 	return out, nil
 }
 
-func (c *deliveryServiceClient) GetProvince(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetProvinceResponse, error) {
+func (c *deliveryServiceClient) GetProvince(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProvinceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetProvinceResponse)
 	err := c.cc.Invoke(ctx, DeliveryService_GetProvince_FullMethodName, in, out, cOpts...)
@@ -76,7 +77,7 @@ func (c *deliveryServiceClient) GetCity(ctx context.Context, in *GetCityRequest,
 // for forward compatibility.
 type DeliveryServiceServer interface {
 	DeliveryCost(context.Context, *DeliveryCostRequest) (*DeliveryCostResponse, error)
-	GetProvince(context.Context, *Empty) (*GetProvinceResponse, error)
+	GetProvince(context.Context, *emptypb.Empty) (*GetProvinceResponse, error)
 	GetCity(context.Context, *GetCityRequest) (*GetCityResponse, error)
 }
 
@@ -90,7 +91,7 @@ type UnimplementedDeliveryServiceServer struct{}
 func (UnimplementedDeliveryServiceServer) DeliveryCost(context.Context, *DeliveryCostRequest) (*DeliveryCostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeliveryCost not implemented")
 }
-func (UnimplementedDeliveryServiceServer) GetProvince(context.Context, *Empty) (*GetProvinceResponse, error) {
+func (UnimplementedDeliveryServiceServer) GetProvince(context.Context, *emptypb.Empty) (*GetProvinceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProvince not implemented")
 }
 func (UnimplementedDeliveryServiceServer) GetCity(context.Context, *GetCityRequest) (*GetCityResponse, error) {
@@ -135,7 +136,7 @@ func _DeliveryService_DeliveryCost_Handler(srv interface{}, ctx context.Context,
 }
 
 func _DeliveryService_GetProvince_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func _DeliveryService_GetProvince_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: DeliveryService_GetProvince_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeliveryServiceServer).GetProvince(ctx, req.(*Empty))
+		return srv.(DeliveryServiceServer).GetProvince(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

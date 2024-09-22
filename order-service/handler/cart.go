@@ -30,7 +30,7 @@ func (h *CartHandler) AddCart(ctx context.Context, req *pb.AddCartRequest) (*pb.
 	var currentQuantity int
 
 	// Check if the cart already exists for the given user_id and shoe_id
-	query := "SELECT cart_id, quantity FROM cart WHERE user_id = ? AND shoe_id = ?"
+	query := "SELECT cart_id, quantity FROM carts WHERE user_id = ? AND shoe_id = ?"
 	err := h.db.QueryRow(query, req.UserId, req.ShoeId).Scan(&cartId, &currentQuantity)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -47,7 +47,7 @@ func (h *CartHandler) AddCart(ctx context.Context, req *pb.AddCartRequest) (*pb.
 
 	if cartId == 0 {
 		// No existing cart, insert a new cart entry
-		query = "INSERT INTO cart (user_id, shoe_id, quantity) VALUES (?, ?, ?)"
+		query = "INSERT INTO carts (user_id, shoe_id, quantity) VALUES (?, ?, ?)"
 		_, err := h.db.Exec(query, req.UserId, req.ShoeId, req.Quantity)
 		if err != nil {
 			// Handle insertion error and return a gRPC Internal error
@@ -59,7 +59,7 @@ func (h *CartHandler) AddCart(ctx context.Context, req *pb.AddCartRequest) (*pb.
 	} else {
 		// Cart exists, update the quantity
 		newQuantity := currentQuantity + int(req.Quantity)
-		query = "UPDATE cart SET quantity = ? WHERE cart_id = ?"
+		query = "UPDATE carts SET quantity = ? WHERE cart_id = ?"
 		_, err := h.db.Exec(query, newQuantity, cartId)
 		if err != nil {
 			// Handle update error and return a gRPC Internal error
@@ -92,7 +92,7 @@ func (h *CartHandler) SubtractCart(ctx context.Context, req *pb.SubtractCartRequ
 	var currentQuantity int
 
 	// Check if the cart already exists for the given user_id and shoe_id
-	query := "SELECT cart_id, quantity FROM cart WHERE user_id = ? AND shoe_id = ?"
+	query := "SELECT cart_id, quantity FROM carts WHERE user_id = ? AND shoe_id = ?"
 	err := h.db.QueryRow(query, req.UserId, req.ShoeId).Scan(&cartId, &currentQuantity)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -110,7 +110,7 @@ func (h *CartHandler) SubtractCart(ctx context.Context, req *pb.SubtractCartRequ
 	newQuantity := currentQuantity - int(req.Quantity)
 	if newQuantity <= 0 {
 		// If the result is zero or negative, delete the cart item
-		query = "DELETE FROM cart WHERE cart_id = ?"
+		query = "DELETE FROM carts WHERE cart_id = ?"
 		_, err := h.db.Exec(query, cartId)
 		if err != nil {
 			// Return internal gRPC error for database issues during deletion
@@ -121,7 +121,7 @@ func (h *CartHandler) SubtractCart(ctx context.Context, req *pb.SubtractCartRequ
 		newQuantity = 0 // Set newQuantity to 0 after deletion
 	} else {
 		// Otherwise, update the quantity
-		query = "UPDATE cart SET quantity = ? WHERE cart_id = ?"
+		query = "UPDATE carts SET quantity = ? WHERE cart_id = ?"
 		_, err := h.db.Exec(query, newQuantity, cartId)
 		if err != nil {
 			// Return internal gRPC error for database issues during update
@@ -179,7 +179,7 @@ func (h *CartHandler) GetCartsByUserId(ctx context.Context, req *pb.GetCartsByUs
 }
 
 func (h *CartHandler) DeleteCartByCartId(ctx context.Context, req *pb.DeleteCartByCartIdRequest) (*pb.DeleteCartByCartIdResponse, error) {
-	query := "DELETE FROM cart WHERE cart_id = ?"
+	query := "DELETE FROM carts WHERE cart_id = ?"
 	result, err := h.db.Exec(query, req.CartId)
 	if err != nil {
 		log.Println("Error deleting from database:", err)

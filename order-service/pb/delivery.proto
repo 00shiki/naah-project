@@ -2,16 +2,13 @@ syntax = "proto3";
 
 option go_package = "/pb";
 
+import "google/protobuf/empty.proto";
+
 service DeliveryService {
     rpc DeliveryCost(DeliveryCostRequest) returns (DeliveryCostResponse);
-    rpc GetProvince(Empty) returns (GetProvinceResponse);
+    rpc GetProvince(google.protobuf.Empty) returns (GetProvinceResponse);
     rpc GetCity(GetCityRequest) returns (GetCityResponse);
 }
-
-message Empty {
-
-}
-
 
 message DeliveryCostRequest {
     string originCityId = 1;

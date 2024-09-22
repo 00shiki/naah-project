@@ -26,12 +26,14 @@ func main() {
 
 	cartHandler := handler.NewCartHandler(db)
 	deliveryHandler := handler.NewDeliveryHandler(db)
+	orderHandler := handler.NewOrderHandler(db)
 
 	// s := grpc.NewServer()
 	s := grpc.NewServer()
 
 	pb.RegisterCartServiceServer(s, cartHandler)
 	pb.RegisterDeliveryServiceServer(s, deliveryHandler)
+	pb.RegisterOrderServiceServer(s, orderHandler)
 
 	reflection.Register(s)
 
@@ -49,4 +51,6 @@ func main() {
 	if err = s.Serve(listen); err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf("EXITING . . .")
 }

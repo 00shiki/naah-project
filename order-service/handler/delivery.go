@@ -8,6 +8,7 @@ import (
 	"order-service/service"
 	"strconv"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -27,7 +28,7 @@ func (h *DeliveryHandler) DeliveryCost(ctx context.Context, req *pb.DeliveryCost
 	// Calculate total weight
 	var weight int32
 	for _, cartID := range req.CartId {
-		query := "SELECT quantity FROM cart WHERE cart_id = ?"
+		query := "SELECT quantity FROM carts WHERE cart_id = ?"
 		log.Printf("Running query: %s with cart_id: %d", query, cartID)
 
 		var qty int32
@@ -94,7 +95,7 @@ func (h *DeliveryHandler) DeliveryCost(ctx context.Context, req *pb.DeliveryCost
 	return response, nil
 }
 
-func (h *DeliveryHandler) GetProvince(ctx context.Context, req *pb.Empty) (*pb.GetProvinceResponse, error) {
+func (h *DeliveryHandler) GetProvince(ctx context.Context, req *empty.Empty) (*pb.GetProvinceResponse, error) {
 	log.Println("GetProvince method started")
 
 	// Call the API to get the province data
