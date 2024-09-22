@@ -7,10 +7,52 @@ CREATE TABLE
     used BOOLEAN NOT NULL
   );
 
+-- Tabel users
+CREATE TABLE
+  users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    birth_date DATE,
+    address TEXT,
+    contact_no VARCHAR(20)
+  );
+
+-- Tabel shoe_models
+CREATE TABLE
+  shoe_models (
+    model_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price INT NOT NULL
+  );
+
+-- Tabel shoe_details
+CREATE TABLE
+  shoe_details (
+    shoe_id INT AUTO_INCREMENT PRIMARY KEY,
+    model_id INT NOT NULL,
+    size INT NOT NULL,
+    stock INT NOT NULL,
+    FOREIGN KEY (model_id) REFERENCES shoe_models (model_id)
+  );
+
+-- Tabel carts
+CREATE TABLE
+  carts (
+    cart_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    quantity INT NOT NULL,
+    shoe_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (user_id),
+    FOREIGN KEY (shoe_id) REFERENCES shoe_details (shoe_id)
+  );
+
 -- Tabel orders
 CREATE TABLE
   orders (
-    order_id INT PRIMARY KEY,
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     voucher_id VARCHAR(255), -- changed to VARCHAR(255) to match vouchers table
     status VARCHAR(20),
@@ -25,52 +67,10 @@ CREATE TABLE
     FOREIGN KEY (voucher_id) REFERENCES vouchers (voucher_id)
   );
 
--- Tabel users
-CREATE TABLE
-  users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
-    birth_date DATE,
-    address TEXT,
-    contact_no VARCHAR(20)
-  );
-
--- Tabel shoe_details
-CREATE TABLE
-  shoe_details (
-    shoe_id INT AUTO_INCREMENT PRIMARY KEY,
-    model_id INT NOT NULL,
-    size INT NOT NULL,
-    stock INT NOT NULL,
-    FOREIGN KEY (model_id) REFERENCES shoe_models (model_id)
-  );
-
--- Tabel shoe_models
-CREATE TABLE
-  shoe_models (
-    model_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    price INT NOT NULL
-  );
-
--- Tabel carts
-CREATE TABLE
-  carts (
-    cart_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    quantity INT NOT NULL,
-    shoe_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id),
-    FOREIGN KEY (shoe_id) REFERENCES shoe_details (shoe_id)
-  );
-
 -- Tabel payments
 CREATE TABLE
   payments (
-    payment_id INT PRIMARY KEY,
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
     payment_external_id VARCHAR(36),
     amount INT,
@@ -84,7 +84,7 @@ CREATE TABLE
 -- Tabel deliveries
 CREATE TABLE
   deliveries (
-    delivery_id INT PRIMARY KEY,
+    delivery_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
     delivery_date DATETIME,
     arrival_date DATETIME,
@@ -170,7 +170,13 @@ VALUES
   (2, 41, 5), -- Adidas Ultraboost, Size 41
   (3, 40, 8);
 
--- Puma Suede Classic, Size 40
+-- Insert into carts
+INSERT INTO
+  carts (user_id, quantity, shoe_id)
+VALUES
+  (1, 2, 1), -- John Doe, 2x Nike Air Max, Size 42
+  (2, 1, 4);
+
 -- Insert into orders
 INSERT INTO
   orders (
@@ -181,8 +187,6 @@ INSERT INTO
     fee,
     discount,
     total_price,
-    created_at,
-    updated_at,
     metadata
   )
 VALUES
@@ -194,31 +198,19 @@ VALUES
     10,
     10,
     120,
-    NOW (),
-    NOW (),
     '{"note": "first order"}'
   ),
   (
     2,
-    NULL,
+    'NOVOUCHER',
     'pending',
     150,
     15,
     0,
     165,
-    NOW (),
-    NOW (),
     '{"note": "gift purchase"}'
   );
 
--- Insert into carts
-INSERT INTO
-  carts (user_id, quantity, shoe_id)
-VALUES
-  (1, 2, 1), -- John Doe, 2x Nike Air Max, Size 42
-  (2, 1, 4);
-
--- Jane Smith, 1x Puma Suede Classic, Size 40
 -- Insert into payments
 INSERT INTO
   payments (
@@ -227,8 +219,6 @@ INSERT INTO
     payment_external_id,
     amount,
     status,
-    created_at,
-    updated_at,
     metadata
   )
 VALUES
@@ -238,8 +228,6 @@ VALUES
     'EXT_001',
     120,
     'paid',
-    NOW (),
-    NOW (),
     '{"transaction_id": "TID001"}'
   ),
   (
@@ -248,8 +236,6 @@ VALUES
     'EXT_002',
     165,
     'pending',
-    NOW (),
-    NOW (),
     '{"transaction_id": "TID002"}'
   );
 
@@ -267,8 +253,6 @@ INSERT INTO
     destination_city_id,
     delivery_fee,
     status,
-    created_at,
-    updated_at,
     metadata
   )
 VALUES
@@ -284,8 +268,6 @@ VALUES
     'C002',
     20,
     'delivered',
-    NOW (),
-    NOW (),
     '{"tracking_id": "TRACK001"}'
   ),
   (
@@ -300,8 +282,6 @@ VALUES
     'C004',
     15,
     'in_transit',
-    NOW (),
-    NOW (),
     '{"tracking_id": "TRACK002"}'
   );
 
@@ -309,7 +289,5 @@ VALUES
 INSERT INTO
   order_details (order_id, shoe_id, quantity)
 VALUES
-  (1, 1, 2), -- 2x Nike Air Max, Size 42
+  (1, 1, 2),
   (2, 4, 1);
-
--- 1x Puma Suede Classic, Size 40

@@ -149,7 +149,7 @@ func (h *CartHandler) SubtractCart(ctx context.Context, req *pb.SubtractCartRequ
 }
 
 func (h *CartHandler) GetCartsByUserId(ctx context.Context, req *pb.GetCartsByUserIdRequest) (*pb.GetCartsByUserIdResponse, error) {
-	query := "SELECT cart_id, user_id, shoe_id, quantity FROM cart WHERE user_id = ?"
+	query := "SELECT cart_id, user_id, shoe_id, quantity FROM carts WHERE user_id = ?"
 	rows, err := h.db.Query(query, req.UserId)
 	if err != nil {
 		log.Println("Error querying database:", err)
