@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "/pb";
+
+service OrderService {
+    rpc AddOrder(AddOrderRequest) returns (AddOrderResponse);
+}
+
+message AddOrderRequest {
+    int32 userId = 1;
+    string voucherId = 2;
+    repeated int32 cartIds = 3;
+    string courierName = 4;
+	string courierServiceName = 5;
+	string originCityId = 6;
+	string destinationCityId = 7;
+    int32 otherFee = 8;
+    string metadata = 9;
+}
+
+
+message AddOrderResponse {
+    string message = 1;
+    string invoiceUrl = 2;
+    string expiredDate = 3;
+    int32 totalPrice = 4;
+}
