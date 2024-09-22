@@ -1,0 +1,52 @@
+syntax = "proto3";
+package user;
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+option go_package = "./proto";
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse);
+  rpc GetUserDetail(GetUserDetailRequest) returns (GetUserDetailResponse);
+  rpc VerifyEmail(VerifyEmailRequest) returns (google.protobuf.Empty);
+}
+
+message CreateUserRequest {
+  string email = 1;
+  string password = 2;
+  string firstName = 3;
+  string lastName = 4;
+  google.protobuf.Timestamp birthDate = 5;
+  string address = 6;
+  string contactNo = 7;
+}
+
+message CreateUserResponse {
+  int64 userId = 1;
+}
+
+message ValidateUserRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message ValidateUserResponse {
+  string jwtToken = 1;
+}
+
+message GetUserDetailRequest {
+  int64 userId = 1;
+}
+
+message GetUserDetailResponse {
+  string email = 1;
+  string firstName = 2;
+  string lastName = 3;
+  google.protobuf.Timestamp birthDate = 4;
+  string address = 5;
+  string contactNo = 6;
+}
+
+message VerifyEmailRequest {
+  int64 userId = 1;
+}
