@@ -31,21 +31,8 @@ type shoes struct {
 func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*pb.AddOrderResponse, error) {
 	log.Println("Starting AddOrder function")
 
-	// Dummy values for now
-	// userID := 1
-	// voucherID := "NOVOUCHER"
-	// price := 10000
-	// otherFee := 0
-	// fee := deliveryFee + otherFee
-	// discount := 0
-	// totalPrice := price + fee - discount
-
-	/*
-		 TODO
-		- Buat method Callback Payment (tambah email ke pelanggan)
-		- Buat method check order saja
-	*/
 	cartIds := utils.RemoveDuplicates(req.CartIds)
+	log.Printf("Unique cart IDs: %v\n", cartIds)
 
 	var shoeId, shoeQty, shoePrice int
 	var shoeList []shoes
@@ -54,14 +41,18 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 		query := "SELECT shoe_id, quantity FROM carts WHERE cart_id = ?"
 		err := h.db.QueryRow(query, cartId).Scan(&shoeId, &shoeQty)
 		if err != nil {
+			log.Printf("Error querying database for cart_id %d: %v\n", cartId, err)
 			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
 		}
+		log.Printf("Cart ID: %d, Shoe ID: %d, Quantity: %d\n", cartId, shoeId, shoeQty)
 
 		query = `SELECT sm.price FROM shoe_models sm JOIN shoe_details sd ON sm.model_id = sd.model_id WHERE sd.shoe_id = ?`
 		err = h.db.QueryRow(query, shoeId).Scan(&shoePrice)
 		if err != nil {
+			log.Printf("Error querying database for shoe_id %d: %v\n", shoeId, err)
 			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
 		}
+		log.Printf("Shoe ID: %d, Price: %d\n", shoeId, shoePrice)
 
 		shoeList = append(shoeList, shoes{ID: shoeId, Price: shoePrice, Qty: shoeQty})
 	}
@@ -71,71 +62,53 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 		tempPrice := shoe.Price * shoe.Qty
 		price += tempPrice
 	}
+	log.Printf("Calculated total price from cart: %d\n", price)
 
-	// TODO - Cek Harga sepatu grpc product
-	/*
-		TODO:
-		create variable temp: total_price
-		2. iterasi:
-				. create variable temp: shoe_qty, shoe_price
-				1. get cart_id
-				- cek apakah user_id sesuai dengan user_id di cart
-				- ambil shoes_id dan quantity jika benar
-				2. get shoes detail by shoes_id -- grpc product
-				- ambil shoe_price
-
-				- add total_price += shoe_proce * shoe_qty
-			 end iterasi
-	*/
-	//! CHECK VOUCHER !!!
+	// Voucher processing
 	var voucherID string
 	if req.VoucherId == "" {
 		voucherID = "NOVOUCHER"
 	} else {
 		voucherID = req.VoucherId
 	}
-	// Variables to store data from the query
+	log.Printf("Using voucher ID: %s\n", voucherID)
+
 	var discountPercent float64
-	var validUntilStr string // Store valid_until as a string initially
+	var validUntilStr string
 	var used bool
 
-	// Execute the query
 	query := "SELECT discount, valid_until, used FROM vouchers WHERE voucher_id = ?"
 	log.Printf("Executing query: %s\n", query)
-	err := h.db.QueryRow(query, req.VoucherId).Scan(&discountPercent, &validUntilStr, &used)
+	err := h.db.QueryRow(query, voucherID).Scan(&discountPercent, &validUntilStr, &used)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// No voucher found for the given voucher ID
-			log.Printf("No voucher found for VoucherId=%s\n", req.VoucherId)
+			log.Printf("No voucher found for VoucherId=%s\n", voucherID)
 			return nil, status.Errorf(codes.NotFound, "Voucher not found")
 		} else {
-			// Handle unexpected database errors and return a gRPC Internal error
-			log.Printf("Error querying database for VoucherId=%s: %v\n", req.VoucherId, err)
+			log.Printf("Error querying database for VoucherId=%s: %v\n", voucherID, err)
 			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
 		}
 	}
 
-	// Parse the validUntil string into time.Time
-	layout := "2006-01-02" // Adjust this layout to match the format in your database
+	layout := "2006-01-02"
 	validUntil, err := time.Parse(layout, validUntilStr)
 	if err != nil {
 		log.Printf("Error parsing validUntil: %v\n", err)
 		return nil, status.Errorf(codes.Internal, "Error parsing validUntil: %v", err)
 	}
+	log.Printf("Voucher valid until: %s\n", validUntil)
 
-	// Check if the voucher is valid
 	if validUntil.Before(time.Now()) {
+		log.Println("Voucher has expired")
 		return nil, status.Errorf(codes.InvalidArgument, "Voucher has expired")
 	} else if used {
-		return nil, status.Errorf(codes.InvalidArgument, "Voucher has already used")
+		log.Println("Voucher has already been used")
+		return nil, status.Errorf(codes.InvalidArgument, "Voucher has already been used")
 	}
 
-	// Assuming `price` is an int representing the price in cents
-	// Calculate the discount as an integer
-	discount := int(float64(price) * (discountPercent / 100)) // Calculate discount in cents
+	discount := int(float64(price) * (discountPercent / 100))
 	log.Printf("Applying discount: %d on price: %d\n", discount, price)
 
-	//! CHECK COURIER !!!
 	// Calculate total weight
 	var weight int32
 	for _, cartID := range req.CartIds {
@@ -158,15 +131,15 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 	deliveryReq := service.DeliveryCostReq{
 		Origin:      req.OriginCityId,
 		Destination: req.DestinationCityId,
-		Weight:      fmt.Sprintf("%s", weightGrams),
+		Weight:      fmt.Sprintf("%d", weightGrams),
 		Courier:     req.CourierName,
 	}
 	deliveryResp, err := service.CallDeliveryAPI(deliveryReq)
 	if err != nil {
+		log.Printf("Error calling delivery API: %v\n", err)
 		return nil, err
 	}
 
-	// Find the index of the service with ServiceName
 	var index int = -1
 	for i, service := range deliveryResp.Rajaongkir.Results[0].Costs {
 		if service.Service == req.CourierServiceName {
@@ -176,22 +149,21 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 	}
 
 	if index == -1 {
-		fmt.Printf("Service '%s' not found.\n", req.CourierServiceName)
+		log.Printf("Service '%s' not found.\n", req.CourierServiceName)
 		return nil, status.Errorf(codes.NotFound, "Service '%s' not found", req.CourierServiceName)
 	}
 
 	deliveryFee := deliveryResp.Rajaongkir.Results[0].Costs[index].Cost[0].Value
+	log.Printf("Calculated delivery fee: %d\n", deliveryFee)
 
-	//! TOTAL
+	// Calculate total price
 	fee := deliveryFee + int(req.OtherFee)
 	totalPrice := price + fee - discount
-
-	//! MAKE ORDER !!!
-	// Log some important variables
 	log.Printf("Calculated totalPrice: %d\n", totalPrice)
 
 	XenditPayload, err := service.CallXenditInvoiceAPI(totalPrice)
 	if err != nil {
+		log.Printf("Error calling Xendit Invoice API: %v\n", err)
 		return nil, err
 	}
 
@@ -203,13 +175,11 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 		return nil, status.Errorf(codes.Internal, "error inserting order: %v", err)
 	}
 
-	// Retrieve the last inserted order_id
 	orderID, err := result.LastInsertId()
 	if err != nil {
 		log.Printf("Error fetching order_id: %v\n", err)
 		return nil, status.Errorf(codes.Internal, "error fetching order_id: %v", err)
 	}
-
 	log.Printf("Order created with ID: %d\n", orderID)
 
 	// Insert into payments
@@ -228,18 +198,26 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 		return nil, status.Errorf(codes.Internal, "error inserting delivery: %v", err)
 	}
 
-	// TODO Insert Into order details
-
 	// Insert into order details
-	for index, shoeId := range shoeIds {
-		query = `INSERT INTO order_details (order_id, shoe_id, quantity) VALUES (?, ?, ?)`
-		_, err = h.db.Exec(query, orderID, shoeId, qtys[index])
+	// for index, shoe := range shoeList {
+	// 	query = `INSERT INTO order_details (order_id, shoe_id, quantity) VALUES (?, ?, ?)`
+	// 	_, err = h.db.Exec(query, orderID, shoe.ID, shoe.Qty)
+	// 	if err != nil {
+	// 		log.Printf("Error inserting into order_details table: %v\n", err)
+	// 		return nil, status.Errorf(codes.Internal, "error inserting order details: %v", err)
+	// 	}
+	// 	log.Printf("Inserted order detail for Shoe ID: %d, Quantity: %d\n", shoe.ID, shoe.Qty)
+	// }
+
+	// Set voucher expired
+	if voucherID != "NOVOUCHER" {
+		query = `UPDATE vouchers SET used VALUES true WHERE voucher_id = ?`
+		_, err = h.db.Exec(query, voucherID)
 		if err != nil {
 			log.Printf("Error inserting into deliveries table: %v\n", err)
 			return nil, status.Errorf(codes.Internal, "error inserting delivery: %v", err)
 		}
 	}
-	// TODO disable voucher after used
 
 	// Prepare response
 	response := &pb.AddOrderResponse{
