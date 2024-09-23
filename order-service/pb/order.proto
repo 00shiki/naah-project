@@ -2,8 +2,11 @@ syntax = "proto3";
 
 option go_package = "/pb";
 
+import "google/protobuf/empty.proto";
+
 service OrderService {
     rpc AddOrder(AddOrderRequest) returns (AddOrderResponse);
+    rpc CallbackNotification(CallbackNotificationRequest) returns (google.protobuf.Empty);
 }
 
 message AddOrderRequest {
@@ -25,3 +28,10 @@ message AddOrderResponse {
     string expiredDate = 3;
     int32 totalPrice = 4;
 }
+
+message CallbackNotificationRequest{
+    string orderIdExt = 1;
+    string status = 2;
+    string paidAmount = 3;
+}
+
