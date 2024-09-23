@@ -9,7 +9,7 @@ func (ur *UserRepository) GetUserByID(userID int64) (*users.User, error) {
 	user := &users.User{
 		ID: userID,
 	}
-	stmt, err := ur.db.Prepare(`SELECT email, password_hash, first_name, last_name, birth_date, address, contact_no FROM Users WHERE user_id = ?`)
+	stmt, err := ur.db.Prepare(`SELECT email, password_hash, first_name, last_name, birth_date, address, contact_no, role, verified FROM users WHERE user_id = ?`)
 	if err != nil {
 		return nil, err
 	}
@@ -26,6 +26,8 @@ func (ur *UserRepository) GetUserByID(userID int64) (*users.User, error) {
 		&user.BirthDate,
 		&user.Address,
 		&user.ContactNo,
+		&user.Role,
+		&user.Verified,
 	)
 	if err != nil {
 		return nil, err
@@ -37,7 +39,7 @@ func (ur *UserRepository) GetUserByEmail(email string) (*users.User, error) {
 	user := &users.User{
 		Email: email,
 	}
-	stmt, err := ur.db.Prepare(`SELECT user_id, password_hash, first_name, last_name, birth_date, address, contact_no FROM Users WHERE email = ?`)
+	stmt, err := ur.db.Prepare(`SELECT user_id, password_hash, first_name, last_name, birth_date, address, contact_no, role, verified FROM users WHERE email = ?`)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +56,8 @@ func (ur *UserRepository) GetUserByEmail(email string) (*users.User, error) {
 		&user.BirthDate,
 		&user.Address,
 		&user.ContactNo,
+		&user.Role,
+		&user.Verified,
 	)
 	if err != nil {
 		return nil, err

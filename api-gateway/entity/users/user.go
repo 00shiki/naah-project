@@ -11,6 +11,12 @@ type User struct {
 	BirthDate time.Time
 	Address   string
 	ContactNo string
-	Verified  bool
-	Role      int
+	Role
 }
+
+type Role int
+
+const (
+	Customer Role = iota + 1
+	Admin
+)
