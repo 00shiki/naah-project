@@ -27,12 +27,14 @@ func main() {
 	cartHandler := handler.NewCartHandler(db)
 	deliveryHandler := handler.NewDeliveryHandler(db)
 	orderHandler := handler.NewOrderHandler(db)
+	voucherHandler := handler.NewVoucherHandler(db)
 
 	s := grpc.NewServer()
 
 	pb.RegisterCartServiceServer(s, cartHandler)
 	pb.RegisterDeliveryServiceServer(s, deliveryHandler)
 	pb.RegisterOrderServiceServer(s, orderHandler)
+	pb.RegisterVoucherServiceServer(s, voucherHandler)
 
 	reflection.Register(s)
 
