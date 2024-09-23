@@ -10,6 +10,7 @@ import (
 	"order-service/utils"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -31,23 +32,48 @@ type shoes struct {
 func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*pb.AddOrderResponse, error) {
 	log.Println("Starting AddOrder function")
 
+	// Start a transaction
+	tx, err := h.db.Begin()
+	if err != nil {
+		log.Printf("Error starting transaction: %v\n", err)
+		return nil, status.Errorf(codes.Internal, "Error starting transaction: %v", err)
+	}
+
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				log.Printf("Error rolling back transaction: %v\n", rbErr)
+			}
+		} else {
+			if cmErr := tx.Commit(); cmErr != nil {
+				log.Printf("Error committing transaction: %v\n", cmErr)
+			}
+		}
+	}()
+
 	cartIds := utils.RemoveDuplicates(req.CartIds)
 	log.Printf("Unique cart IDs: %v\n", cartIds)
 
 	var shoeId, shoeQty, shoePrice int
 	var shoeList []shoes
+	var userIdTemp int
 
+	// Fetching shoes from cart
 	for _, cartId := range cartIds {
-		query := "SELECT shoe_id, quantity FROM carts WHERE cart_id = ?"
-		err := h.db.QueryRow(query, cartId).Scan(&shoeId, &shoeQty)
+		query := "SELECT user_id, shoe_id, quantity FROM carts WHERE cart_id = ?"
+		err := tx.QueryRow(query, cartId).Scan(&userIdTemp, &shoeId, &shoeQty)
 		if err != nil {
 			log.Printf("Error querying database for cart_id %d: %v\n", cartId, err)
 			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
 		}
 		log.Printf("Cart ID: %d, Shoe ID: %d, Quantity: %d\n", cartId, shoeId, shoeQty)
 
+		if userIdTemp != int(req.UserId) {
+			return nil, status.Errorf(codes.InvalidArgument, "cart is not belong to user")
+		}
+
 		query = `SELECT sm.price FROM shoe_models sm JOIN shoe_details sd ON sm.model_id = sd.model_id WHERE sd.shoe_id = ?`
-		err = h.db.QueryRow(query, shoeId).Scan(&shoePrice)
+		err = tx.QueryRow(query, shoeId).Scan(&shoePrice)
 		if err != nil {
 			log.Printf("Error querying database for shoe_id %d: %v\n", shoeId, err)
 			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
@@ -57,10 +83,10 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 		shoeList = append(shoeList, shoes{ID: shoeId, Price: shoePrice, Qty: shoeQty})
 	}
 
+	// Calculate total price
 	var price int
 	for _, shoe := range shoeList {
-		tempPrice := shoe.Price * shoe.Qty
-		price += tempPrice
+		price += shoe.Price * shoe.Qty
 	}
 	log.Printf("Calculated total price from cart: %d\n", price)
 
@@ -79,7 +105,7 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 
 	query := "SELECT discount, valid_until, used FROM vouchers WHERE voucher_id = ?"
 	log.Printf("Executing query: %s\n", query)
-	err := h.db.QueryRow(query, voucherID).Scan(&discountPercent, &validUntilStr, &used)
+	err = tx.QueryRow(query, voucherID).Scan(&discountPercent, &validUntilStr, &used)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No voucher found for VoucherId=%s\n", voucherID)
@@ -116,7 +142,7 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 		log.Printf("Running query: %s with cart_id: %d", query, cartID)
 
 		var qty int32
-		err := h.db.QueryRow(query, cartID).Scan(&qty)
+		err := tx.QueryRow(query, cartID).Scan(&qty)
 		if err != nil {
 			log.Printf("Error querying database for cart_id %d: %v", cartID, err)
 			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
@@ -169,7 +195,7 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 
 	// Insert user into database
 	query = `INSERT INTO orders (user_id, voucher_id, status, price, fee, discount, total_price, metadata) VALUES (?, ?, ?, ?, ?, ?, ?,?)`
-	result, err := h.db.Exec(query, req.UserId, voucherID, "open", price, fee, discount, totalPrice, req.Metadata)
+	result, err := tx.Exec(query, req.UserId, voucherID, "open", price, fee, discount, totalPrice, req.Metadata)
 	if err != nil {
 		log.Printf("Error inserting into orders table: %v\n", err)
 		return nil, status.Errorf(codes.Internal, "error inserting order: %v", err)
@@ -184,7 +210,7 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 
 	// Insert into payments
 	query = `INSERT INTO payments (order_id, payment_external_id, amount, status, metadata) VALUES (?, ?, ?, ?, ?)`
-	_, err = h.db.Exec(query, orderID, XenditPayload.Req.ExternalId, totalPrice, "open", req.Metadata)
+	_, err = tx.Exec(query, orderID, XenditPayload.Req.ExternalId, totalPrice, "open", req.Metadata)
 	if err != nil {
 		log.Printf("Error inserting into payments table: %v\n", err)
 		return nil, status.Errorf(codes.Internal, "error inserting payment: %v", err)
@@ -192,7 +218,7 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 
 	// Insert into deliveries
 	query = `INSERT INTO deliveries (order_id, courier_name, courier_service, weight_grams, origin_city_id, destination_city_id, delivery_fee, status, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	_, err = h.db.Exec(query, orderID, req.CourierName, req.CourierServiceName, weightGrams, req.OriginCityId, req.DestinationCityId, deliveryFee, "open", req.Metadata)
+	_, err = tx.Exec(query, orderID, req.CourierName, req.CourierServiceName, weightGrams, req.OriginCityId, req.DestinationCityId, deliveryFee, "open", req.Metadata)
 	if err != nil {
 		log.Printf("Error inserting into deliveries table: %v\n", err)
 		return nil, status.Errorf(codes.Internal, "error inserting delivery: %v", err)
@@ -201,7 +227,7 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 	// Insert into order details
 	for _, shoe := range shoeList {
 		query = `INSERT INTO order_details (order_id, shoe_id, quantity) VALUES (?, ?, ?)`
-		_, err = h.db.Exec(query, orderID, shoe.ID, shoe.Qty)
+		_, err = tx.Exec(query, orderID, shoe.ID, shoe.Qty)
 		if err != nil {
 			log.Printf("Error inserting into order_details table: %v\n", err)
 			return nil, status.Errorf(codes.Internal, "error inserting order details: %v", err)
@@ -211,21 +237,21 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 
 	// Set voucher expired
 	if voucherID != "NOVOUCHER" {
-		query = `UPDATE vouchers SET used VALUES true WHERE voucher_id = ?`
-		_, err = h.db.Exec(query, voucherID)
+		query = `UPDATE vouchers SET used = true WHERE voucher_id = ?`
+		_, err = tx.Exec(query, voucherID)
 		if err != nil {
-			log.Printf("Error inserting into deliveries table: %v\n", err)
-			return nil, status.Errorf(codes.Internal, "error inserting delivery: %v", err)
+			log.Printf("Error updating vouchers table: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "error updating voucher: %v", err)
 		}
 	}
 
 	// Set cart empty
 	for _, cartId := range cartIds {
 		query = `DELETE FROM carts WHERE cart_id = ?`
-		_, err = h.db.Exec(query, cartId)
+		_, err = tx.Exec(query, cartId)
 		if err != nil {
-			log.Printf("Error inserting into order_details table: %v\n", err)
-			return nil, status.Errorf(codes.Internal, "error inserting order details: %v", err)
+			log.Printf("Error deleting from carts table: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "error deleting cart: %v", err)
 		}
 	}
 
@@ -239,4 +265,10 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 
 	log.Println("Order successfully created")
 	return response, nil
+}
+
+// https://developers.xendit.co/api-reference/#invoice-callback
+
+func (h *OrderHandler) CallbackNotification(ctx context.Context, req *pb.CallbackNotificationRequest) (*empty.Empty, error) {
+	return nil, nil
 }

@@ -26,7 +26,7 @@ func NewCartHandler(db *sql.DB) *CartHandler {
 }
 
 func (h *CartHandler) AddCart(ctx context.Context, req *pb.AddCartRequest) (*pb.AddCartResponse, error) {
-	var cartId int
+	var cartId int64
 	var currentQuantity int
 
 	// Check if the cart already exists for the given user_id and shoe_id
@@ -48,11 +48,16 @@ func (h *CartHandler) AddCart(ctx context.Context, req *pb.AddCartRequest) (*pb.
 	if cartId == 0 {
 		// No existing cart, insert a new cart entry
 		query = "INSERT INTO carts (user_id, shoe_id, quantity) VALUES (?, ?, ?)"
-		_, err := h.db.Exec(query, req.UserId, req.ShoeId, req.Quantity)
+		result, err := h.db.Exec(query, req.UserId, req.ShoeId, req.Quantity)
 		if err != nil {
 			// Handle insertion error and return a gRPC Internal error
 			log.Println("Error inserting into database:", err)
 			return nil, status.Errorf(codes.Internal, "Error inserting into database: %v", err)
+		}
+		cartId, err = result.LastInsertId()
+		if err != nil {
+			log.Printf("Error fetching cart_id: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "error fetching order_id: %v", err)
 		}
 		log.Println("New cart item added to the database.")
 		currentQuantity = int(req.Quantity) // Since it's a new entry, the quantity is the one added
