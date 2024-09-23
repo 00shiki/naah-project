@@ -8,6 +8,7 @@ import (
 	"order-service/pb"
 	"order-service/service"
 	"order-service/utils"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,13 +22,19 @@ func NewOrderHandler(db *sql.DB) *OrderHandler {
 	return &OrderHandler{db}
 }
 
+type shoes struct {
+	ID    int
+	Price int
+	Qty   int
+}
+
 func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*pb.AddOrderResponse, error) {
 	log.Println("Starting AddOrder function")
 
 	// Dummy values for now
 	// userID := 1
 	// voucherID := "NOVOUCHER"
-	price := 10000
+	// price := 10000
 	// otherFee := 0
 	// fee := deliveryFee + otherFee
 	// discount := 0
@@ -40,19 +47,29 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 	*/
 	cartIds := utils.RemoveDuplicates(req.CartIds)
 
-	var shoeIds []int
-	var qtys []int
-	var shoeId int
-	var qty int
+	var shoeId, shoeQty, shoePrice int
+	var shoeList []shoes
 
 	for _, cartId := range cartIds {
-		query := "SELECT shoe_id, quantity  FROM carts WHERE cart_id = ?"
-		err := h.db.QueryRow(query, cartId).Scan(&shoeId, &qty)
+		query := "SELECT shoe_id, quantity FROM carts WHERE cart_id = ?"
+		err := h.db.QueryRow(query, cartId).Scan(&shoeId, &shoeQty)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
 		}
-		shoeIds = append(shoeIds, shoeId)
-		qtys = append(qtys, qty)
+
+		query = `SELECT sm.price FROM shoe_models sm JOIN shoe_details sd ON sm.model_id = sd.model_id WHERE sd.shoe_id = ?`
+		err = h.db.QueryRow(query, shoeId).Scan(&shoePrice)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
+		}
+
+		shoeList = append(shoeList, shoes{ID: shoeId, Price: shoePrice, Qty: shoeQty})
+	}
+
+	var price int
+	for _, shoe := range shoeList {
+		tempPrice := shoe.Price * shoe.Qty
+		price += tempPrice
 	}
 
 	// TODO - Cek Harga sepatu grpc product
@@ -70,15 +87,53 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 				- add total_price += shoe_proce * shoe_qty
 			 end iterasi
 	*/
-	// TODO - Cek Voucher harga discount grpc voucher
-	// TODO - Cek is voucher valid?
+	//! CHECK VOUCHER !!!
 	var voucherID string
 	if req.VoucherId == "" {
 		voucherID = "NOVOUCHER"
 	} else {
 		voucherID = req.VoucherId
 	}
-	var discount int
+	// Variables to store data from the query
+	var discountPercent float64
+	var validUntilStr string // Store valid_until as a string initially
+	var used bool
+
+	// Execute the query
+	query := "SELECT discount, valid_until, used FROM vouchers WHERE voucher_id = ?"
+	log.Printf("Executing query: %s\n", query)
+	err := h.db.QueryRow(query, req.VoucherId).Scan(&discountPercent, &validUntilStr, &used)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// No voucher found for the given voucher ID
+			log.Printf("No voucher found for VoucherId=%s\n", req.VoucherId)
+			return nil, status.Errorf(codes.NotFound, "Voucher not found")
+		} else {
+			// Handle unexpected database errors and return a gRPC Internal error
+			log.Printf("Error querying database for VoucherId=%s: %v\n", req.VoucherId, err)
+			return nil, status.Errorf(codes.Internal, "Error querying database: %v", err)
+		}
+	}
+
+	// Parse the validUntil string into time.Time
+	layout := "2006-01-02" // Adjust this layout to match the format in your database
+	validUntil, err := time.Parse(layout, validUntilStr)
+	if err != nil {
+		log.Printf("Error parsing validUntil: %v\n", err)
+		return nil, status.Errorf(codes.Internal, "Error parsing validUntil: %v", err)
+	}
+
+	// Check if the voucher is valid
+	if validUntil.Before(time.Now()) {
+		return nil, status.Errorf(codes.InvalidArgument, "Voucher has expired")
+	} else if used {
+		return nil, status.Errorf(codes.InvalidArgument, "Voucher has already used")
+	}
+
+	// Assuming `price` is an int representing the price in cents
+	// Calculate the discount as an integer
+	discount := int(float64(price) * (discountPercent / 100)) // Calculate discount in cents
+	log.Printf("Applying discount: %d on price: %d\n", discount, price)
 
 	//! CHECK COURIER !!!
 	// Calculate total weight
@@ -141,7 +196,7 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 	}
 
 	// Insert user into database
-	query := `INSERT INTO orders (user_id, voucher_id, status, price, fee, discount, total_price, metadata) VALUES (?, ?, ?, ?, ?, ?, ?,?)`
+	query = `INSERT INTO orders (user_id, voucher_id, status, price, fee, discount, total_price, metadata) VALUES (?, ?, ?, ?, ?, ?, ?,?)`
 	result, err := h.db.Exec(query, req.UserId, voucherID, "open", price, fee, discount, totalPrice, req.Metadata)
 	if err != nil {
 		log.Printf("Error inserting into orders table: %v\n", err)
