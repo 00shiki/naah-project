@@ -199,15 +199,15 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 	}
 
 	// Insert into order details
-	// for index, shoe := range shoeList {
-	// 	query = `INSERT INTO order_details (order_id, shoe_id, quantity) VALUES (?, ?, ?)`
-	// 	_, err = h.db.Exec(query, orderID, shoe.ID, shoe.Qty)
-	// 	if err != nil {
-	// 		log.Printf("Error inserting into order_details table: %v\n", err)
-	// 		return nil, status.Errorf(codes.Internal, "error inserting order details: %v", err)
-	// 	}
-	// 	log.Printf("Inserted order detail for Shoe ID: %d, Quantity: %d\n", shoe.ID, shoe.Qty)
-	// }
+	for _, shoe := range shoeList {
+		query = `INSERT INTO order_details (order_id, shoe_id, quantity) VALUES (?, ?, ?)`
+		_, err = h.db.Exec(query, orderID, shoe.ID, shoe.Qty)
+		if err != nil {
+			log.Printf("Error inserting into order_details table: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "error inserting order details: %v", err)
+		}
+		log.Printf("Inserted order detail for Shoe ID: %d, Quantity: %d\n", shoe.ID, shoe.Qty)
+	}
 
 	// Set voucher expired
 	if voucherID != "NOVOUCHER" {
