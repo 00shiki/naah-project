@@ -219,6 +219,16 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 		}
 	}
 
+	// Set cart empty
+	for _, cartId := range cartIds {
+		query = `DELETE FROM carts WHERE cart_id = ?`
+		_, err = h.db.Exec(query, cartId)
+		if err != nil {
+			log.Printf("Error inserting into order_details table: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "error inserting order details: %v", err)
+		}
+	}
+
 	// Prepare response
 	response := &pb.AddOrderResponse{
 		Message:     "Success",
