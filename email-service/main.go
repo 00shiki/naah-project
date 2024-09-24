@@ -4,12 +4,12 @@ import (
     "log"
     "email-service/service"
     "email-service/handlers"
+    
     "github.com/streadway/amqp"
 	"os"
 )
 
 func main() {
-    // Load Email Service
     emailService, err := service.NewEmailService()
     if err != nil {
         log.Fatalf("Error initializing email service: %v", err)
@@ -35,6 +35,5 @@ func main() {
         log.Fatalf("Failed to declare RabbitMQ queue: %v", err)
     }
 
-    // Handle messages from RabbitMQ
     handlers.HandleEmailQueue(ch, q, emailService)
 }
