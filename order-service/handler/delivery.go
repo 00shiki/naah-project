@@ -168,44 +168,70 @@ func (h *DeliveryHandler) GetCourier(ctx context.Context, req *empty.Empty) (*pb
 
 // CallbackDelivery handles updating delivery based on callback information
 func (h *DeliveryHandler) CallbackDelivery(ctx context.Context, req *pb.CallbackDeliveryRequest) (*emptypb.Empty, error) {
-	// Begin transaction
+	// Begin a transaction
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {
-		log.Printf("Error starting transaction: %v\n", err)
-		return nil, status.Errorf(codes.Internal, "error starting transaction")
+		log.Printf("Error beginning transaction: %v\n", err)
+		return nil, status.Errorf(codes.Internal, "error beginning transaction")
 	}
 
-	// Check if the delivery exists and then update the track_id and status
-	query := `UPDATE deliveries SET status = ?, updated_at = CURRENT_TIMESTAMP, delivered = CASE WHEN LOWER(?) = 'delivered' THEN CURRENT_TIMESTAMP ELSE delivered END WHERE track_id = ?`
-	result, err := tx.ExecContext(ctx, query, req.Status, req.Status, req.TrackId)
-	if err != nil {
-		tx.Rollback()
-		log.Printf("Error updating delivery: %v\n", err)
-		return nil, status.Errorf(codes.Internal, "error updating delivery: %v", err)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil || rowsAffected == 0 {
-		tx.Rollback()
-		log.Printf("No delivery found with track_id: %s\n", req.TrackId)
-		return nil, status.Errorf(codes.NotFound, "no delivery found with the given track_id")
-	}
-
-	// Update the order status in the orders table if necessary
+	// Update the order and delivery status based on req.Status
 	if strings.EqualFold(req.Status, "delivered") {
-		query = `UPDATE orders SET status = 'delivered' WHERE order_id = (SELECT order_id FROM deliveries WHERE track_id = ?)`
-		result, err = tx.ExecContext(ctx, query, req.TrackId)
+		// Update the order status to 'delivered'
+		query := `UPDATE orders SET status = 'delivered' 
+                  WHERE order_id = (SELECT order_id FROM deliveries WHERE track_id = ?)`
+
+		result, err := tx.ExecContext(ctx, query, req.TrackId)
 		if err != nil {
 			tx.Rollback()
 			log.Printf("Error updating order: %v\n", err)
 			return nil, status.Errorf(codes.Internal, "error updating order: %v", err)
 		}
 
-		rowsAffected, err = result.RowsAffected()
+		rowsAffected, err := result.RowsAffected()
 		if err != nil || rowsAffected == 0 {
 			tx.Rollback()
 			log.Printf("No order found for track_id: %s\n", req.TrackId)
 			return nil, status.Errorf(codes.NotFound, "no order found for the given track_id")
+		}
+
+		// Update delivery status and delivery date
+		query = `UPDATE deliveries 
+                  SET status = ?, delivery_date = CURRENT_TIMESTAMP 
+                  WHERE track_id = ?`
+
+		result, err = tx.ExecContext(ctx, query, req.Status, req.TrackId)
+		if err != nil {
+			tx.Rollback()
+			log.Printf("Error updating delivery: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "error updating delivery: %v", err)
+		}
+
+		rowsAffected, err = result.RowsAffected()
+		if err != nil || rowsAffected == 0 {
+			tx.Rollback()
+			log.Printf("No delivery found with track_id: %s\n", req.TrackId)
+			return nil, status.Errorf(codes.NotFound, "no delivery found with the given track_id")
+		}
+
+	} else {
+		// If the status is not 'delivered', only update the deliveries status
+		query := `UPDATE deliveries 
+                  SET status = ? 
+                  WHERE track_id = ?`
+
+		result, err := tx.ExecContext(ctx, query, req.Status, req.TrackId)
+		if err != nil {
+			tx.Rollback()
+			log.Printf("Error updating delivery: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "error updating delivery: %v", err)
+		}
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil || rowsAffected == 0 {
+			tx.Rollback()
+			log.Printf("No delivery found with track_id: %s\n", req.TrackId)
+			return nil, status.Errorf(codes.NotFound, "no delivery found with the given track_id")
 		}
 	}
 
