@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option go_package = "/proto";
+
+import "google/protobuf/timestamp.proto";
+
+// Cart service definition
+service CartService {
+  rpc UpdateCart(UpdateCartRequest) returns (UpdateCartResponse);
+  rpc GetCartsByUserId(GetCartsByUserIdRequest) returns (GetCartsByUserIdResponse);
+  rpc DeleteCartByCartId(DeleteCartByCartIdRequest) returns (DeleteCartByCartIdResponse);
+}
+
+// Define a CartItem message to represent a single item in the cart
+message CartItem {
+  int32 cart_id = 1;
+  int32 user_id = 2;
+  int32 shoe_id = 3;
+  int32 quantity = 4;
+}
+
+// Request and Response messages
+message UpdateCartRequest {
+  int32 user_id = 1;
+  int32 shoe_id = 2;
+  int32 quantity = 3;
+}
+
+message UpdateCartResponse {
+  CartItem item = 1;  // Use singular 'item' for a single CartItem
+}
+
+message GetCartsByUserIdRequest {
+  int32 user_id = 1;
+}
+
+message GetCartsByUserIdResponse {
+  repeated CartItem carts = 1;
+}
+
+message DeleteCartByCartIdRequest {
+  int32 cart_id = 1;
+}
+
+message DeleteCartByCartIdResponse {
+  string message = 1;
+}
