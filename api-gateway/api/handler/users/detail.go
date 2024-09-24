@@ -10,8 +10,15 @@ import (
 )
 
 func (handler *Controller) Detail(c echo.Context) error {
-	userID := c.Get("user_id").(int64)
-	user, err := handler.us.GetUserDetail(userID)
+	userID, ok := c.Get("user_id").(float64)
+	if !ok {
+		res := responses.Response{
+			Code:    http.StatusUnauthorized,
+			Message: "Detail: Invalid Token",
+		}
+		return c.JSON(http.StatusUnauthorized, res)
+	}
+	user, err := handler.us.GetUserDetail(int64(userID))
 	if err != nil {
 		res := &responses.Response{
 			Message: err.Error(),
@@ -33,6 +40,7 @@ func (handler *Controller) Detail(c echo.Context) error {
 			FirstName: user.FirstName,
 			LastName:  user.LastName,
 			BirthDate: user.BirthDate.String(),
+			Address:   user.Address,
 			ContactNo: user.ContactNo,
 		},
 	}

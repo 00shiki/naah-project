@@ -94,13 +94,14 @@ func (s *Service) ValidateUser(_ context.Context, req *pb.ValidateUserRequest) (
 
 	claims := JWT_ENTITY.Claims{
 		UserID: user.ID,
-		Role:   int(user.Role),
+		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(3 * 24 * time.Second)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(3 * 24 * time.Hour)),
 		},
 	}
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(os.Getenv("JWT_SECRET"))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
+		log.Printf("ValidateUser: %v", err)
 		return nil, status.Errorf(codes.Internal, "cannot create token")
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -36,6 +37,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return responses.HandleResponse(c, res)
 		}
 		claims, ok := token.Claims.(jwt.MapClaims)
+		log.Printf("claims: %v", claims)
 		if !ok || !token.Valid {
 			res := &responses.Response{
 				Code:    http.StatusUnauthorized,
@@ -44,8 +46,24 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return responses.HandleResponse(c, res)
 		}
 
-		c.Set("user_id", claims["user_id"])
-		c.Set("role", claims["role"])
+		userID, ok := claims["user_id"]
+		if !ok {
+			res := &responses.Response{
+				Code:    http.StatusUnauthorized,
+				Message: "Invalid Token",
+			}
+			return responses.HandleResponse(c, res)
+		}
+		role, ok := claims["role"]
+		if !ok {
+			res := &responses.Response{
+				Code:    http.StatusUnauthorized,
+				Message: "Invalid Token",
+			}
+			return responses.HandleResponse(c, res)
+		}
+		c.Set("user_id", userID)
+		c.Set("role", role)
 
 		return next(c)
 	}
