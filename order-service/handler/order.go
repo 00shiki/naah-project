@@ -354,65 +354,93 @@ func (h *OrderHandler) CallbackNotification(ctx context.Context, req *pb.Callbac
 // TODO - Order History
 
 func (h *OrderHandler) GetOrderList(ctx context.Context, req *pb.GetOrderListRequest) (*pb.GetOrderListResponse, error) {
-	var (
-		orders      []*pb.Shoe
-		fee         int
-		discount    float64
-		totalPrice  int
-		voucherId   string
-		statusOrder string
-	)
+	userId := req.UserId
+	log.Printf("Received GetOrderList request for user ID: %d", userId)
 
-	// Query to get orders for the user
 	query := `
-        SELECT o.status, o.total_price, o.fee, v.discount, o.voucher_id,
-               sm.name, sm.price, od.quantity
-        FROM orders o
-        LEFT JOIN vouchers v ON o.voucher_id = v.voucher_id
-        INNER JOIN order_details od ON o.order_id = od.order_id
-        INNER JOIN shoe_details sd ON od.shoe_id = sd.shoe_id
-        INNER JOIN shoe_models sm ON sd.model_id = sm.model_id
-        WHERE o.user_id = ?
-    `
+        SELECT 
+            o.order_id,
+            o.status,
+            o.fee,
+            o.discount,
+            o.total_price,
+            o.voucher_id,
+            sd.size AS shoe_size,
+            sm.name AS shoe_model_name,
+            sm.price AS shoe_model_price,
+            od.quantity AS shoe_qty
+        FROM 
+            orders o
+        LEFT JOIN 
+            order_details od ON o.order_id = od.order_id
+        LEFT JOIN 
+            shoe_details sd ON od.shoe_id = sd.shoe_id
+        LEFT JOIN
+            shoe_models sm ON sd.model_id = sm.model_id
+        WHERE 
+            o.user_id = ?
+        ORDER BY 
+            o.order_id;`
 
-	rows, err := h.db.QueryContext(ctx, query, req.UserId)
+	log.Println("Executing SQL query...")
+	rows, err := h.db.Query(query, userId)
 	if err != nil {
-		log.Printf("Error fetching orders: %v\n", err)
-		return nil, status.Errorf(codes.Internal, "error fetching orders: %v", err)
+		log.Printf("Error executing query: %v", err)
+		return nil, err
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var shoe pb.Shoe
-		var shoePrice int
-		var shoeQty int
+	ordersMap := make(map[int32]*pb.Order)
 
-		// Scan the result into variables
-		err := rows.Scan(&statusOrder, &totalPrice, &fee, &discount, &voucherId, &shoe.Name, &shoePrice, &shoeQty)
+	for rows.Next() {
+		var order pb.Order
+		var shoe pb.Shoe
+
+		// Scan the values from the query
+		err = rows.Scan(
+			&order.OrderId,
+			&order.Status,
+			&order.Fee,
+			&order.Discount,
+			&order.TotalPrice,
+			&order.VoucherId,
+			&shoe.Size,
+			&shoe.Name,
+			&shoe.Price,
+			&shoe.Qty,
+		)
 		if err != nil {
-			log.Printf("Error scanning order details: %v\n", err)
-			return nil, status.Errorf(codes.Internal, "error scanning order details: %v", err)
+			log.Printf("Error scanning row: %v", err)
+			return nil, err
 		}
 
-		shoe.Price = int32(shoePrice)
-		shoe.Qty = int32(shoeQty)
-		orders = append(orders, &shoe)
+		// Check if the order already exists in the map
+		existingOrder, found := ordersMap[(order.OrderId)]
+		if !found {
+			// If not found, create a new order entry
+			existingOrder = &order
+			existingOrder.Shoes = []*pb.Shoe{} // Initialize the shoes list
+			ordersMap[order.OrderId] = existingOrder
+		}
+
+		// Append the shoe to the existing order's shoe list
+		existingOrder.Shoes = append(existingOrder.Shoes, &shoe)
+
+		// Log the processed order
+		log.Printf("Processed order: %+v", existingOrder)
 	}
 
-	if err = rows.Err(); err != nil {
-		log.Printf("Error in row iteration: %v\n", err)
-		return nil, status.Errorf(codes.Internal, "error in row iteration: %v", err)
+	if err := rows.Err(); err != nil {
+		log.Printf("Error encountered during row iteration: %v", err)
+		return nil, err
 	}
 
-	// Build the response
-	response := &pb.GetOrderListResponse{
-		Shoes:      orders,
-		Fee:        int32(fee),
-		Discount:   discount,
-		TotalPrice: int32(totalPrice),
-		VoucherId:  voucherId,
-		Status:     statusOrder,
+	// Convert ordersMap to a slice
+	var orders []*pb.Order
+	for _, order := range ordersMap {
+		orders = append(orders, order)
 	}
 
-	return response, nil
+	log.Printf("Returning %d orders for user ID: %d", len(orders), userId)
+	return &pb.GetOrderListResponse{Orders: orders}, nil
 }
