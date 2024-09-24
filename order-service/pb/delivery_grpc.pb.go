@@ -20,9 +20,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DeliveryService_DeliveryCost_FullMethodName = "/DeliveryService/DeliveryCost"
-	DeliveryService_GetProvince_FullMethodName  = "/DeliveryService/GetProvince"
-	DeliveryService_GetCity_FullMethodName      = "/DeliveryService/GetCity"
+	DeliveryService_DeliveryCost_FullMethodName     = "/DeliveryService/DeliveryCost"
+	DeliveryService_GetCourier_FullMethodName       = "/DeliveryService/GetCourier"
+	DeliveryService_GetProvince_FullMethodName      = "/DeliveryService/GetProvince"
+	DeliveryService_GetCity_FullMethodName          = "/DeliveryService/GetCity"
+	DeliveryService_InputTrackId_FullMethodName     = "/DeliveryService/InputTrackId"
+	DeliveryService_CallbackDelivery_FullMethodName = "/DeliveryService/CallbackDelivery"
 )
 
 // DeliveryServiceClient is the client API for DeliveryService service.
@@ -30,8 +33,11 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeliveryServiceClient interface {
 	DeliveryCost(ctx context.Context, in *DeliveryCostRequest, opts ...grpc.CallOption) (*DeliveryCostResponse, error)
+	GetCourier(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetCourierResponse, error)
 	GetProvince(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProvinceResponse, error)
 	GetCity(ctx context.Context, in *GetCityRequest, opts ...grpc.CallOption) (*GetCityResponse, error)
+	InputTrackId(ctx context.Context, in *InputTrackIdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CallbackDelivery(ctx context.Context, in *CallbackDeliveryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type deliveryServiceClient struct {
@@ -46,6 +52,16 @@ func (c *deliveryServiceClient) DeliveryCost(ctx context.Context, in *DeliveryCo
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeliveryCostResponse)
 	err := c.cc.Invoke(ctx, DeliveryService_DeliveryCost_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deliveryServiceClient) GetCourier(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetCourierResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCourierResponse)
+	err := c.cc.Invoke(ctx, DeliveryService_GetCourier_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -72,13 +88,36 @@ func (c *deliveryServiceClient) GetCity(ctx context.Context, in *GetCityRequest,
 	return out, nil
 }
 
+func (c *deliveryServiceClient) InputTrackId(ctx context.Context, in *InputTrackIdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, DeliveryService_InputTrackId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deliveryServiceClient) CallbackDelivery(ctx context.Context, in *CallbackDeliveryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, DeliveryService_CallbackDelivery_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DeliveryServiceServer is the server API for DeliveryService service.
 // All implementations should embed UnimplementedDeliveryServiceServer
 // for forward compatibility.
 type DeliveryServiceServer interface {
 	DeliveryCost(context.Context, *DeliveryCostRequest) (*DeliveryCostResponse, error)
+	GetCourier(context.Context, *emptypb.Empty) (*GetCourierResponse, error)
 	GetProvince(context.Context, *emptypb.Empty) (*GetProvinceResponse, error)
 	GetCity(context.Context, *GetCityRequest) (*GetCityResponse, error)
+	InputTrackId(context.Context, *InputTrackIdRequest) (*emptypb.Empty, error)
+	CallbackDelivery(context.Context, *CallbackDeliveryRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedDeliveryServiceServer should be embedded to have
@@ -91,11 +130,20 @@ type UnimplementedDeliveryServiceServer struct{}
 func (UnimplementedDeliveryServiceServer) DeliveryCost(context.Context, *DeliveryCostRequest) (*DeliveryCostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeliveryCost not implemented")
 }
+func (UnimplementedDeliveryServiceServer) GetCourier(context.Context, *emptypb.Empty) (*GetCourierResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCourier not implemented")
+}
 func (UnimplementedDeliveryServiceServer) GetProvince(context.Context, *emptypb.Empty) (*GetProvinceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProvince not implemented")
 }
 func (UnimplementedDeliveryServiceServer) GetCity(context.Context, *GetCityRequest) (*GetCityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCity not implemented")
+}
+func (UnimplementedDeliveryServiceServer) InputTrackId(context.Context, *InputTrackIdRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InputTrackId not implemented")
+}
+func (UnimplementedDeliveryServiceServer) CallbackDelivery(context.Context, *CallbackDeliveryRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CallbackDelivery not implemented")
 }
 func (UnimplementedDeliveryServiceServer) testEmbeddedByValue() {}
 
@@ -131,6 +179,24 @@ func _DeliveryService_DeliveryCost_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DeliveryServiceServer).DeliveryCost(ctx, req.(*DeliveryCostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeliveryService_GetCourier_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeliveryServiceServer).GetCourier(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeliveryService_GetCourier_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeliveryServiceServer).GetCourier(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -171,6 +237,42 @@ func _DeliveryService_GetCity_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DeliveryService_InputTrackId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InputTrackIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeliveryServiceServer).InputTrackId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeliveryService_InputTrackId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeliveryServiceServer).InputTrackId(ctx, req.(*InputTrackIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeliveryService_CallbackDelivery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CallbackDeliveryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeliveryServiceServer).CallbackDelivery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeliveryService_CallbackDelivery_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeliveryServiceServer).CallbackDelivery(ctx, req.(*CallbackDeliveryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DeliveryService_ServiceDesc is the grpc.ServiceDesc for DeliveryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -183,12 +285,24 @@ var DeliveryService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DeliveryService_DeliveryCost_Handler,
 		},
 		{
+			MethodName: "GetCourier",
+			Handler:    _DeliveryService_GetCourier_Handler,
+		},
+		{
 			MethodName: "GetProvince",
 			Handler:    _DeliveryService_GetProvince_Handler,
 		},
 		{
 			MethodName: "GetCity",
 			Handler:    _DeliveryService_GetCity_Handler,
+		},
+		{
+			MethodName: "InputTrackId",
+			Handler:    _DeliveryService_InputTrackId_Handler,
+		},
+		{
+			MethodName: "CallbackDelivery",
+			Handler:    _DeliveryService_CallbackDelivery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
