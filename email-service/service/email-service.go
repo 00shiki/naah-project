@@ -10,9 +10,9 @@ import (
 	"bytes"
 
 	"gopkg.in/gomail.v2"
+    "github.com/joho/godotenv"
 )
 
-// Configuration for sending emails
 type EmailService struct {
     SMTPHost     string
     SMTPPort     int
@@ -22,7 +22,11 @@ type EmailService struct {
 }
 
 func NewEmailService() (*EmailService, error) {
-	port, _ := strconv.Atoi(os.Getenv("SMTPTPort"))
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatalf("Error loading .env file")
+    }
+	port, _ := strconv.Atoi(os.Getenv("SMTPPort"))
     return &EmailService{
         SMTPHost:     os.Getenv("SMTPHost"),
         SMTPPort:     port,
@@ -79,3 +83,5 @@ func parseTemplate(templatePath string, data map[string]interface{}) string {
 
     return tplOutput.String()
 }
+
+
