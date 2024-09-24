@@ -6,7 +6,7 @@ import (
 )
 
 func (ur *UserRepository) CreateUser(user *users.User) error {
-	stmt, err := ur.db.Prepare(`INSERT INTO Users (email, password_hash, first_name, last_name, birth_date, address, contact_no) values , ?, ?, ? , ?, ?)`)
+	stmt, err := ur.db.Prepare(`INSERT INTO users (email, password_hash, first_name, last_name, birth_date, address, contact_no, role) values (?, ?, ?, ? , ?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -19,6 +19,7 @@ func (ur *UserRepository) CreateUser(user *users.User) error {
 		user.BirthDate,
 		user.Address,
 		user.ContactNo,
+		user.Role,
 	)
 	if err != nil {
 		return err
@@ -32,7 +33,7 @@ func (ur *UserRepository) CreateUser(user *users.User) error {
 }
 
 func (ur *UserRepository) UpdateUser(user *users.User) error {
-	stmt, err := ur.db.Prepare(`UPDATE Users SET email = ?, password_hash = ?, first_name = ?, last_name = ?, birth_date = ?, address = ?, contact_no = ? WHERE user_id = ?`)
+	stmt, err := ur.db.Prepare(`UPDATE users SET email = ?, password_hash = ?, first_name = ?, last_name = ?, birth_date = ?, address = ?, contact_no = ?, verified = ? WHERE user_id = ?`)
 	if err != nil {
 		return err
 	}
@@ -45,6 +46,7 @@ func (ur *UserRepository) UpdateUser(user *users.User) error {
 		user.BirthDate,
 		user.Address,
 		user.ContactNo,
+		user.Verified,
 		user.ID,
 	)
 	if err != nil {
