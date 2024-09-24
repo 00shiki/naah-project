@@ -7,6 +7,7 @@ import "google/protobuf/empty.proto";
 service OrderService {
     rpc AddOrder(AddOrderRequest) returns (AddOrderResponse);
     rpc CallbackNotification(CallbackNotificationRequest) returns (google.protobuf.Empty);
+    rpc GetOrderList(GetOrderListRequest) returns (GetOrderListResponse);
 }
 
 message AddOrderRequest {
@@ -32,6 +33,24 @@ message AddOrderResponse {
 message CallbackNotificationRequest{
     string orderIdExt = 1;
     string status = 2;
-    string paidAmount = 3;
+    int32 paidAmount = 3;
 }
 
+message GetOrderListRequest {
+    int32 userId = 1;
+}
+
+message GetOrderListResponse {
+    repeated Shoe shoes = 1;
+    int32 fee = 2;
+    double discount = 3; // Changed decimal to double
+    int32 totalPrice = 4;
+    string voucherId = 5;
+    string status = 6;
+}
+
+message Shoe {
+    string name = 1;
+    int32 price = 2;
+    int32 qty = 3;
+}

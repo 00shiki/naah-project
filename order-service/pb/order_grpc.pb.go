@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	OrderService_AddOrder_FullMethodName             = "/OrderService/AddOrder"
 	OrderService_CallbackNotification_FullMethodName = "/OrderService/CallbackNotification"
+	OrderService_GetOrderList_FullMethodName         = "/OrderService/GetOrderList"
 )
 
 // OrderServiceClient is the client API for OrderService service.
@@ -30,6 +31,7 @@ const (
 type OrderServiceClient interface {
 	AddOrder(ctx context.Context, in *AddOrderRequest, opts ...grpc.CallOption) (*AddOrderResponse, error)
 	CallbackNotification(ctx context.Context, in *CallbackNotificationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetOrderList(ctx context.Context, in *GetOrderListRequest, opts ...grpc.CallOption) (*GetOrderListResponse, error)
 }
 
 type orderServiceClient struct {
@@ -60,12 +62,23 @@ func (c *orderServiceClient) CallbackNotification(ctx context.Context, in *Callb
 	return out, nil
 }
 
+func (c *orderServiceClient) GetOrderList(ctx context.Context, in *GetOrderListRequest, opts ...grpc.CallOption) (*GetOrderListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetOrderListResponse)
+	err := c.cc.Invoke(ctx, OrderService_GetOrderList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations should embed UnimplementedOrderServiceServer
 // for forward compatibility.
 type OrderServiceServer interface {
 	AddOrder(context.Context, *AddOrderRequest) (*AddOrderResponse, error)
 	CallbackNotification(context.Context, *CallbackNotificationRequest) (*emptypb.Empty, error)
+	GetOrderList(context.Context, *GetOrderListRequest) (*GetOrderListResponse, error)
 }
 
 // UnimplementedOrderServiceServer should be embedded to have
@@ -80,6 +93,9 @@ func (UnimplementedOrderServiceServer) AddOrder(context.Context, *AddOrderReques
 }
 func (UnimplementedOrderServiceServer) CallbackNotification(context.Context, *CallbackNotificationRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CallbackNotification not implemented")
+}
+func (UnimplementedOrderServiceServer) GetOrderList(context.Context, *GetOrderListRequest) (*GetOrderListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrderList not implemented")
 }
 func (UnimplementedOrderServiceServer) testEmbeddedByValue() {}
 
@@ -137,6 +153,24 @@ func _OrderService_CallbackNotification_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_GetOrderList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrderListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetOrderList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_GetOrderList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetOrderList(ctx, req.(*GetOrderListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -151,6 +185,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CallbackNotification",
 			Handler:    _OrderService_CallbackNotification_Handler,
+		},
+		{
+			MethodName: "GetOrderList",
+			Handler:    _OrderService_GetOrderList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

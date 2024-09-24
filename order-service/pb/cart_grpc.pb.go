@@ -19,8 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CartService_AddCart_FullMethodName            = "/CartService/AddCart"
-	CartService_SubtractCart_FullMethodName       = "/CartService/SubtractCart"
+	CartService_UpdateCart_FullMethodName         = "/CartService/UpdateCart"
 	CartService_GetCartsByUserId_FullMethodName   = "/CartService/GetCartsByUserId"
 	CartService_DeleteCartByCartId_FullMethodName = "/CartService/DeleteCartByCartId"
 )
@@ -31,8 +30,7 @@ const (
 //
 // Cart service definition
 type CartServiceClient interface {
-	AddCart(ctx context.Context, in *AddCartRequest, opts ...grpc.CallOption) (*AddCartResponse, error)
-	SubtractCart(ctx context.Context, in *SubtractCartRequest, opts ...grpc.CallOption) (*SubtractCartResponse, error)
+	UpdateCart(ctx context.Context, in *UpdateCartRequest, opts ...grpc.CallOption) (*UpdateCartResponse, error)
 	GetCartsByUserId(ctx context.Context, in *GetCartsByUserIdRequest, opts ...grpc.CallOption) (*GetCartsByUserIdResponse, error)
 	DeleteCartByCartId(ctx context.Context, in *DeleteCartByCartIdRequest, opts ...grpc.CallOption) (*DeleteCartByCartIdResponse, error)
 }
@@ -45,20 +43,10 @@ func NewCartServiceClient(cc grpc.ClientConnInterface) CartServiceClient {
 	return &cartServiceClient{cc}
 }
 
-func (c *cartServiceClient) AddCart(ctx context.Context, in *AddCartRequest, opts ...grpc.CallOption) (*AddCartResponse, error) {
+func (c *cartServiceClient) UpdateCart(ctx context.Context, in *UpdateCartRequest, opts ...grpc.CallOption) (*UpdateCartResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AddCartResponse)
-	err := c.cc.Invoke(ctx, CartService_AddCart_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *cartServiceClient) SubtractCart(ctx context.Context, in *SubtractCartRequest, opts ...grpc.CallOption) (*SubtractCartResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SubtractCartResponse)
-	err := c.cc.Invoke(ctx, CartService_SubtractCart_FullMethodName, in, out, cOpts...)
+	out := new(UpdateCartResponse)
+	err := c.cc.Invoke(ctx, CartService_UpdateCart_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +79,7 @@ func (c *cartServiceClient) DeleteCartByCartId(ctx context.Context, in *DeleteCa
 //
 // Cart service definition
 type CartServiceServer interface {
-	AddCart(context.Context, *AddCartRequest) (*AddCartResponse, error)
-	SubtractCart(context.Context, *SubtractCartRequest) (*SubtractCartResponse, error)
+	UpdateCart(context.Context, *UpdateCartRequest) (*UpdateCartResponse, error)
 	GetCartsByUserId(context.Context, *GetCartsByUserIdRequest) (*GetCartsByUserIdResponse, error)
 	DeleteCartByCartId(context.Context, *DeleteCartByCartIdRequest) (*DeleteCartByCartIdResponse, error)
 }
@@ -104,11 +91,8 @@ type CartServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCartServiceServer struct{}
 
-func (UnimplementedCartServiceServer) AddCart(context.Context, *AddCartRequest) (*AddCartResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddCart not implemented")
-}
-func (UnimplementedCartServiceServer) SubtractCart(context.Context, *SubtractCartRequest) (*SubtractCartResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SubtractCart not implemented")
+func (UnimplementedCartServiceServer) UpdateCart(context.Context, *UpdateCartRequest) (*UpdateCartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCart not implemented")
 }
 func (UnimplementedCartServiceServer) GetCartsByUserId(context.Context, *GetCartsByUserIdRequest) (*GetCartsByUserIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCartsByUserId not implemented")
@@ -136,38 +120,20 @@ func RegisterCartServiceServer(s grpc.ServiceRegistrar, srv CartServiceServer) {
 	s.RegisterService(&CartService_ServiceDesc, srv)
 }
 
-func _CartService_AddCart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddCartRequest)
+func _CartService_UpdateCart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCartRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CartServiceServer).AddCart(ctx, in)
+		return srv.(CartServiceServer).UpdateCart(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CartService_AddCart_FullMethodName,
+		FullMethod: CartService_UpdateCart_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CartServiceServer).AddCart(ctx, req.(*AddCartRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CartService_SubtractCart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SubtractCartRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CartServiceServer).SubtractCart(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CartService_SubtractCart_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CartServiceServer).SubtractCart(ctx, req.(*SubtractCartRequest))
+		return srv.(CartServiceServer).UpdateCart(ctx, req.(*UpdateCartRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -216,12 +182,8 @@ var CartService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CartServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "AddCart",
-			Handler:    _CartService_AddCart_Handler,
-		},
-		{
-			MethodName: "SubtractCart",
-			Handler:    _CartService_SubtractCart_Handler,
+			MethodName: "UpdateCart",
+			Handler:    _CartService_UpdateCart_Handler,
 		},
 		{
 			MethodName: "GetCartsByUserId",

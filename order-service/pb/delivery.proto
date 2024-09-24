@@ -6,8 +6,11 @@ import "google/protobuf/empty.proto";
 
 service DeliveryService {
     rpc DeliveryCost(DeliveryCostRequest) returns (DeliveryCostResponse);
+    rpc GetCourier(google.protobuf.Empty) returns (GetCourierResponse);
     rpc GetProvince(google.protobuf.Empty) returns (GetProvinceResponse);
     rpc GetCity(GetCityRequest) returns (GetCityResponse);
+    rpc InputTrackId(InputTrackIdRequest) returns (google.protobuf.Empty);
+    rpc CallbackDelivery(CallbackDeliveryRequest) returns (google.protobuf.Empty);
 }
 
 message DeliveryCostRequest {
@@ -64,3 +67,19 @@ message GetCityRequest{
 message GetCityResponse {
     repeated City cities = 1;
 }
+
+message GetCourierResponse{
+    repeated string courier = 1;
+}
+
+
+message CallbackDeliveryRequest {
+    string track_id = 1;
+    string status = 2;
+}
+message InputTrackIdRequest {
+    string order_id = 1;
+    string track_id = 2;
+    string status = 3;
+}
+
