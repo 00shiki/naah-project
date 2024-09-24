@@ -270,5 +270,6 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 // https://developers.xendit.co/api-reference/#invoice-callback
 
 func (h *OrderHandler) CallbackNotification(ctx context.Context, req *pb.CallbackNotificationRequest) (*empty.Empty, error) {
+
 	return nil, nil
 }
