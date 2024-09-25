@@ -10,10 +10,11 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	amqp "github.com/rabbitmq/amqp091-go"
+	"fmt"
 	"log"
 	"time"
-    "fmt"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type RabbitMQClient struct {
@@ -26,6 +27,7 @@ func NewRabbitMQClient(addr string) (*RabbitMQClient, error) {
 		log.Fatal(err)
 		return nil, err
 	}
+	log.Println("SUCCESS INITIATE RABBITMQ CLIENT")
 	return &RabbitMQClient{
 		conn: conn,
 	}, nil
@@ -76,53 +78,48 @@ func (r *RabbitMQClient) Push(name string, data interface{}) error {
 //   - shoe qty
 // -  total price paid
 
-
 type OrderDetail struct {
-    ShoeName     string `json:"shoe_name"`
-    ShoeSize     int64  `json:"shoe_size"`
-    Qty          int32  `json:"quantity"`
+	ShoeName string `json:"shoe_name"`
+	ShoeSize int64  `json:"shoe_size"`
+	Qty      int32  `json:"quantity"`
 }
 
 type OrderReceiptEmail struct {
-    UserName   string `json:"user_name"`
-    UserEmail   string `json:"user_email"`
-    OrderId     int64  `json:"order_id"`
-    TotalPrice  int32  `json:"total_price"`
-    OrderDetail []OrderDetail `json:"order_detail"`
+	UserName    string        `json:"user_name"`
+	UserEmail   string        `json:"user_email"`
+	OrderId     int64         `json:"order_id"`
+	TotalPrice  int32         `json:"total_price"`
+	OrderDetail []OrderDetail `json:"order_detail"`
 }
 
-func sendReceiptEmail(order OrderReceiptEmail, rabbitMQ *RabbitMQClient) error {
-    emailPayload := map[string]interface{}{
-        "to":      order.UserEmail,
-        "subject": "Your Order Receipt",
-        "type":    "receipt",
-        "order_receipt": order,
-    }
+func SendReceiptEmail(order OrderReceiptEmail, rabbitMQ *RabbitMQClient) error {
+	emailPayload := map[string]interface{}{
+		"to":            order.UserEmail,
+		"subject":       "Your Order Receipt",
+		"type":          "receipt",
+		"order_receipt": order,
+	}
 
-    err := rabbitMQ.Push("email_queue", emailPayload)
-    if err != nil {
-        log.Printf("Error sending email receipt: %v", err)
-        return fmt.Errorf("cannot push email")
-    }
+	err := rabbitMQ.Push("email_queue", emailPayload)
+	if err != nil {
+		log.Printf("Error sending email receipt: %v", err)
+		return fmt.Errorf("cannot push email")
+	}
 	return nil
 }
 
-func sendDeliveredEmail(userEmail string, orderID int, rabbitMQ *RabbitMQClient) error {
-    emailPayload := map[string]interface{}{
-        "to":      userEmail,
-        "subject": "Your Order Has Been Delivered",
-        "type":    "delivered",
-        "order_id": orderID,
-    }
+func SendDeliveredEmail(userEmail string, orderID int, rabbitMQ *RabbitMQClient) error {
+	emailPayload := map[string]interface{}{
+		"to":       userEmail,
+		"subject":  "Your Order Has Been Delivered",
+		"type":     "delivered",
+		"order_id": orderID,
+	}
 
-    err := rabbitMQ.Push("email_queue", emailPayload)
-    if err != nil {
-        log.Printf("Error sending email receipt: %v", err)
-        return fmt.Errorf("cannot push email")
-    }
+	err := rabbitMQ.Push("email_queue", emailPayload)
+	if err != nil {
+		log.Printf("Error sending email receipt: %v", err)
+		return fmt.Errorf("cannot push email")
+	}
 	return nil
 }
-
-
-
-
