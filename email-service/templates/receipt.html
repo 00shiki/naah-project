@@ -1,11 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Receipt</title>
+    <title>Order Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
     <h1>Order Receipt</h1>
-    <p>Thank you for your order. Please find the details below:</p>
-    <p>Order ID: {{.OrderID}}</p>
+    <p>Thank you, {{.UserName}}, for your order! Please find the details below:</p>
+
+    <p><strong>Order ID:</strong> {{.OrderID}}</p>
+    <p><strong>Total Price:</strong> Rp.{{.TotalPrice}}</p>
+
+    <h2>Order Details:</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Shoe Name</th>
+                <th>Shoe Size</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .OrderDetail}}
+            <tr>
+                <td>{{.ShoeName}}</td>
+                <td>{{.ShoeSize}}</td>
+                <td>{{.Qty}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    <p>If you have any questions about your order, feel free to contact us.</p>
 </body>
 </html>

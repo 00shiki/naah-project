@@ -3,6 +3,7 @@ package api
 import (
 	"api-gateway/api/routes"
 	VALIDATOR_PKG "api-gateway/pkg/validator"
+	"api-gateway/service/carts"
 	"api-gateway/service/users"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
@@ -10,7 +11,7 @@ import (
 	"net/http"
 )
 
-func Init(e *echo.Echo, us users.Service) {
+func Init(e *echo.Echo, us users.Service, cs carts.Service) {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
@@ -22,6 +23,7 @@ func Init(e *echo.Echo, us users.Service) {
 
 	e.Validator = &VALIDATOR_PKG.CustomValidator{Validator: validator.New()}
 
-	g := e.Group("/api")
+	g := e.Group("/api/v1")
 	routes.UserRoute(g, us)
+	routes.CartRoute(g, cs)
 }

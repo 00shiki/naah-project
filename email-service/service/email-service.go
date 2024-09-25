@@ -50,9 +50,19 @@ func (es *EmailService) SendEmail(payload model.EmailPayload) error {
             "VerificationURL": payload.VerificationURL,
         }
         body = parseTemplate("templates/verification.html", data)
-    } else if payload.Type == "receipt" {
+    } else if payload.Type == "verified" {
+        body = parseTemplate("templates/verified.html", nil)
+    } else if payload.Type == "delivered" {
         data := map[string]interface{}{
             "OrderID": payload.OrderID,
+        }
+        body = parseTemplate("templates/delivered.html", data)
+    } else if payload.Type == "receipt" {
+        data := map[string]interface{}{
+            "UserName": payload.OrderReceipt.UserName,
+            "OrderID": payload.OrderReceipt.OrderId,
+            "TotalPrice": payload.OrderReceipt.TotalPrice,
+            "OrderDetail": payload.OrderReceipt.OrderDetail,
         }
         body = parseTemplate("templates/receipt.html", data)
     } else {

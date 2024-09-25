@@ -1,6 +1,4 @@
 package main
-<<<<<<< HEAD
-=======
 
 import (
     "log"
@@ -39,4 +37,3 @@ func main() {
 
     handlers.HandleEmailQueue(ch, q, emailService)
 }
->>>>>>> origin/main
