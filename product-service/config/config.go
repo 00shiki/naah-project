@@ -4,56 +4,26 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
-
-	"product-service/models"
 
 	"github.com/joho/godotenv"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
+func DatabaseConfig() string {
 
-func InitDB() *gorm.DB {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file:", err)
-	}
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		dbUser, dbPassword, dbHost, dbPort, dbName)
-
-	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Failed to connect to the database:", err)
+		log.Fatal("Error Loading Configuration")
 	}
+	fmt.Println("Config Done")
 
-	log.Println("Successfully connected to the database")
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
 
-	if err := DB.AutoMigrate(
-		&models.User{},
-		&models.ShoeModel{},
-		&models.ShoeDetail{},
-		&models.Cart{},
-		&models.Order{},
-		&models.OrderDetail{},
-		&models.Payment{},
-		&models.Delivery{},
-		&models.Voucher{},
-	); err != nil {
-		if strings.Contains(err.Error(), "already exists") {
-			log.Println("Table already exists, skipping migration for that table.")
-		} else {
-			log.Fatalf("Failed to auto-migrate models: %v", err)
-		}
-	}
-
-	log.Println("Successfully auto-migrated models")
-	return DB
+	// dbConnect := "root:oOxPeoXhtQxVUWIrYMkUnXHIjdbXtQlc@tcp(mysql.railway.internal:3306)/railway"
+	// return dbConnect
+	// return "mysql://root:oOxPeoXhtQxVUWIrYMkUnXHIjdbXtQlc@viaduct.proxy.rlwy.net:36162/railway"
 }

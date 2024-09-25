@@ -1,0 +1,89 @@
+syntax = "proto3";
+package go_proto;
+
+import "pagination.proto";
+
+option go_package = "/pb";
+
+// Service gRPC untuk CRUD produk
+service ProductService {
+  // Mendapatkan produk berdasarkan ID
+  rpc GetProductById (ProductRequestById) returns (ProductResponse);
+
+  // Mendapatkan semua produk dengan pagination
+  rpc GetAllProducts (ProductRequest) returns (ProductResponse);
+
+  // Menambahkan produk baru
+  rpc CreateProduct (CreateProductRequest) returns (ProductResponse);
+
+  // Mengupdate produk
+  rpc UpdateProduct (UpdateProductRequest) returns (ProductResponse);
+
+  // Menghapus produk berdasarkan ID
+  rpc DeleteProduct (ProductRequestById) returns (DeleteProductResponse);
+
+  // Menghapus semua produk
+  rpc DeleteAllProducts (EmptyRequest) returns (DeleteAllProductsResponse);
+}
+
+// Definisi pesan untuk produk
+message Product {
+  uint64 id = 1; 
+  string name = 2; 
+  double price = 3; 
+  uint32 stock = 4;
+  Category category = 5;
+}
+
+// Definisi pesan untuk kategori produk
+message Category {
+  uint32 id = 1;
+  string name = 2;
+}
+
+// Request untuk mendapatkan produk berdasarkan ID
+message ProductRequestById {
+  uint64 id = 1;
+}
+
+// Request untuk mendapatkan semua produk dengan pagination
+message ProductRequest {
+  uint32 page = 1;
+  uint32 per_page = 2;
+}
+
+// Request untuk menambahkan produk baru
+message CreateProductRequest {
+  string name = 1;
+  double price = 2;
+  uint32 stock = 3;
+  Category category = 4;
+}
+
+// Request untuk mengupdate produk
+message UpdateProductRequest {
+  uint64 id = 1;
+  string name = 2;
+  double price = 3;
+  uint32 stock = 4;
+  Category category = 5;
+}
+
+// Response untuk produk
+message ProductResponse {
+  repeated Product products = 1;
+  Pagination pagination = 2;
+}
+
+// Response untuk penghapusan produk
+message DeleteProductResponse {
+  bool success = 1;
+}
+
+// Response untuk penghapusan semua produk
+message DeleteAllProductsResponse {
+  bool success = 1;
+}
+
+// Empty request untuk delete all
+message EmptyRequest {}
