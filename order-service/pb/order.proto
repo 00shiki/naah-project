@@ -15,13 +15,12 @@ message AddOrderRequest {
     string voucherId = 2;
     repeated int32 cartIds = 3;
     string courierName = 4;
-	string courierServiceName = 5;
-	string originCityId = 6;
-	string destinationCityId = 7;
+    string courierServiceName = 5;
+    string originCityId = 6;
+    string destinationCityId = 7;
     int32 otherFee = 8;
     string metadata = 9;
 }
-
 
 message AddOrderResponse {
     string message = 1;
@@ -30,7 +29,7 @@ message AddOrderResponse {
     int32 totalPrice = 4;
 }
 
-message CallbackNotificationRequest{
+message CallbackNotificationRequest {
     string orderIdExt = 1;
     string status = 2;
     int32 paidAmount = 3;
@@ -41,16 +40,22 @@ message GetOrderListRequest {
 }
 
 message GetOrderListResponse {
-    repeated Shoe shoes = 1;
-    int32 fee = 2;
-    double discount = 3; // Changed decimal to double
-    int32 totalPrice = 4;
-    string voucherId = 5;
-    string status = 6;
+    repeated Order orders = 1;
+}
+
+message Order {
+    int32 orderId = 1;
+    repeated Shoe shoes = 2;
+    int32 fee = 3;
+    double discount = 4;
+    int32 totalPrice = 5;
+    string voucherId = 6;
+    string status = 7;
 }
 
 message Shoe {
     string name = 1;
     int32 price = 2;
     int32 qty = 3;
+    int32 size = 4;
 }
