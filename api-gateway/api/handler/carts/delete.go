@@ -1,24 +1,26 @@
-package users
+package carts
 
 import (
-	USERS_PRESENTATION "api-gateway/api/presentation/users"
 	"api-gateway/entity/responses"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"net/http"
+	"strconv"
 )
 
-func (handler *Controller) Detail(c echo.Context) error {
-	userID, ok := c.Get("user_id").(float64)
-	if !ok {
+func (handler *Controller) Delete(c echo.Context) error {
+	cartIDStr := c.Param("cartID")
+	cartID, err := strconv.Atoi(cartIDStr)
+	if err != nil {
 		res := &responses.Response{
-			Code:    http.StatusUnauthorized,
-			Message: "Invalid Token",
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
 		}
 		return responses.HandleResponse(c, res)
 	}
-	user, err := handler.us.GetUserDetail(int64(userID))
+
+	err = handler.cs.DeleteCartItem(int32(cartID))
 	if err != nil {
 		res := &responses.Response{
 			Message: err.Error(),
@@ -35,14 +37,6 @@ func (handler *Controller) Detail(c echo.Context) error {
 	res := &responses.Response{
 		Code:    http.StatusOK,
 		Message: "Success",
-		Data: USERS_PRESENTATION.DetailResponse{
-			Email:     user.Email,
-			FirstName: user.FirstName,
-			LastName:  user.LastName,
-			BirthDate: user.BirthDate.String(),
-			Address:   user.Address,
-			ContactNo: user.ContactNo,
-		},
 	}
 	return responses.HandleResponse(c, res)
 }

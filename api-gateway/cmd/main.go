@@ -3,6 +3,7 @@ package main
 import (
 	"api-gateway/api"
 	pb "api-gateway/proto"
+	"api-gateway/service/carts"
 	"api-gateway/service/users"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -19,12 +20,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed connect to user service: %v", err)
 	}
+
+	orderConn, err := grpc.NewClient(os.Getenv("ORDER_SERVICE_ADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed connect to order service: %v", err)
+	}
+
 	userClient := pb.NewUserServiceClient(userConn)
 	userService := users.NewUserService(userClient)
 
+	cartClient := pb.NewCartServiceClient(orderConn)
+	cartService := carts.NewCartService(cartClient)
+
 	e := echo.New()
 
-	api.Init(e, userService)
+	api.Init(e, userService, cartService)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }
