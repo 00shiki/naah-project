@@ -61,7 +61,6 @@ func (es *EmailService) SendEmail(payload model.EmailPayload) error {
         data := map[string]interface{}{
             "UserName": payload.OrderReceipt.UserName,
             "OrderID": payload.OrderReceipt.OrderId,
-            "OrderDate": payload.OrderReceipt.OrderDate,
             "TotalPrice": payload.OrderReceipt.TotalPrice,
             "OrderDetail": payload.OrderReceipt.OrderDetail,
         }

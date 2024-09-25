@@ -88,7 +88,6 @@ type OrderReceiptEmail struct {
     UserEmail   string `json:"user_email"`
     OrderId     int64  `json:"order_id"`
     TotalPrice  int32  `json:"total_price"`
-    OrderDate   string `json:"order_date"`
     OrderDetail []OrderDetail `json:"order_detail"`
 }
 
