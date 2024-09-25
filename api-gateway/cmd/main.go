@@ -4,6 +4,7 @@ import (
 	"api-gateway/api"
 	pb "api-gateway/proto"
 	"api-gateway/service/carts"
+	"api-gateway/service/orders"
 	"api-gateway/service/users"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -32,9 +33,12 @@ func main() {
 	cartClient := pb.NewCartServiceClient(orderConn)
 	cartService := carts.NewCartService(cartClient)
 
+	orderClient := pb.NewOrderServiceClient(orderConn)
+	orderService := orders.NewOrderService(orderClient)
+
 	e := echo.New()
 
-	api.Init(e, userService, cartService)
+	api.Init(e, userService, cartService, orderService)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }
