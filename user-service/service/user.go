@@ -62,7 +62,7 @@ func (s *Service) CreateUser(_ context.Context, req *pb.CreateUserRequest) (*pb.
 		Subject:         "Email Verification",
 		Body:            "",
 		Type:            "verification",
-		VerificationURL: fmt.Sprintf("%s/verify?user_id=%d", os.Getenv("user_route"), user.ID),
+		VerificationURL: fmt.Sprintf("%s/verify?user_id=%d", os.Getenv("USER_ROUTE"), user.ID),
 	}
 	err = s.rabbitMQ.Push("email_queue", data)
 	if err != nil {
