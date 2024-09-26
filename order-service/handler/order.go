@@ -16,11 +16,12 @@ import (
 )
 
 type OrderHandler struct {
-	db *sql.DB
+	db  *sql.DB
+	rmq *utils.RabbitMQClient
 }
 
-func NewOrderHandler(db *sql.DB) *OrderHandler {
-	return &OrderHandler{db}
+func NewOrderHandler(db *sql.DB, rmq *utils.RabbitMQClient) *OrderHandler {
+	return &OrderHandler{db, rmq}
 }
 
 type shoes struct {
@@ -294,8 +295,17 @@ func (h *OrderHandler) AddOrder(ctx context.Context, req *pb.AddOrderRequest) (*
 }
 
 // https://developers.xendit.co/api-reference/#invoice-callback
+// type OrderReceiptEmail struct {
+// 	UserName    string        `json:"user_name"`
+// 	UserEmail   string        `json:"user_email"`
+// 	OrderId     int64         `json:"order_id"`
+// 	TotalPrice  int32         `json:"total_price"`
+// 	OrderDetail []OrderDetail `json:"order_detail"`
+// }
 
 func (h *OrderHandler) CallbackNotification(ctx context.Context, req *pb.CallbackNotificationRequest) (*empty.Empty, error) {
+	log.Printf("Starting CallbackNotification for payment_external_id: %s, paid_amount: %d, status: %s", req.OrderIdExt, req.PaidAmount, req.Status)
+
 	// Start a transaction
 	tx, err := h.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
@@ -307,7 +317,8 @@ func (h *OrderHandler) CallbackNotification(ctx context.Context, req *pb.Callbac
 	defer func() {
 		if p := recover(); p != nil {
 			tx.Rollback() // If panic, rollback
-			panic(p)      // Rethrow panic after rollback
+			log.Printf("Transaction panicked, rolling back: %v\n", p)
+			panic(p) // Rethrow panic after rollback
 		} else if err != nil {
 			log.Printf("Transaction rolled back due to error: %v\n", err)
 			tx.Rollback() // If error exists, rollback
@@ -315,6 +326,8 @@ func (h *OrderHandler) CallbackNotification(ctx context.Context, req *pb.Callbac
 			err = tx.Commit() // If all went well, commit
 			if err != nil {
 				log.Printf("Error committing transaction: %v\n", err)
+			} else {
+				log.Println("Transaction committed successfully")
 			}
 		}
 	}()
@@ -322,36 +335,104 @@ func (h *OrderHandler) CallbackNotification(ctx context.Context, req *pb.Callbac
 	// Check if the paid amount matches the payment's amount
 	var paymentAmount, orderID int32
 	query := `SELECT amount, order_id FROM payments WHERE payment_external_id = ?`
+	log.Printf("Executing query: %s", query)
 	err = tx.QueryRowContext(ctx, query, req.OrderIdExt).Scan(&paymentAmount, &orderID)
 	if err != nil {
-		log.Printf("Error fetching payment details: %v\n", err)
+		log.Printf("Error fetching payment details for payment_external_id %s: %v\n", req.OrderIdExt, err)
 		return nil, status.Errorf(codes.Internal, "error fetching payment details: %v", err)
 	}
 
+	log.Printf("Fetched payment details: payment_amount=%d, order_id=%d", paymentAmount, orderID)
+
 	if req.PaidAmount != paymentAmount {
+		log.Printf("Paid amount mismatch: expected=%d, received=%d", paymentAmount, req.PaidAmount)
 		return nil, status.Errorf(codes.InvalidArgument, "paid amount does not match the expected amount")
 	}
 
 	// Update the payment status
 	query = `UPDATE payments SET status = ?, updated_at = NOW() WHERE payment_external_id = ?`
+	log.Printf("Executing query to update payment status: %s", query)
 	_, err = tx.ExecContext(ctx, query, req.Status, req.OrderIdExt)
 	if err != nil {
-		log.Printf("Error updating payment status: %v\n", err)
+		log.Printf("Error updating payment status for payment_external_id %s: %v\n", req.OrderIdExt, err)
 		return nil, status.Errorf(codes.Internal, "error updating payment status: %v", err)
 	}
+	log.Println("Payment status updated successfully")
 
 	// Update the order status
 	query = `UPDATE orders SET status = ?, updated_at = NOW() WHERE order_id = ?`
+	log.Printf("Executing query to update order status: %s", query)
 	_, err = tx.ExecContext(ctx, query, req.Status, orderID)
 	if err != nil {
-		log.Printf("Error updating order status: %v\n", err)
+		log.Printf("Error updating order status for order_id %d: %v\n", orderID, err)
 		return nil, status.Errorf(codes.Internal, "error updating order status: %v", err)
 	}
+	log.Println("Order status updated successfully")
+
+	// Fetch order receipt details using the provided SQL query
+	var userNameFirst, userNameLast, userEmail, shoeModelName string
+	var shoeSize int64
+	var quantity, totalPrice int32
+	orderDetails := []utils.OrderDetail{}
+
+	log.Printf("Executing query to fetch order receipt details for payment_external_id %s", req.OrderIdExt)
+	rows, err := tx.QueryContext(ctx, `
+		SELECT u.first_name, u.last_name, u.email, p.order_id, p.amount, sm.name AS shoe_model_name, sd.size AS shoe_size, od.quantity
+		FROM payments p
+		JOIN orders o ON p.order_id = o.order_id
+		JOIN users u ON o.user_id = u.user_id
+		JOIN order_details od ON o.order_id = od.order_id
+		JOIN shoe_details sd ON od.shoe_id = sd.shoe_id
+		JOIN shoe_models sm ON sd.model_id = sm.model_id
+		WHERE p.payment_external_id = ?`, req.OrderIdExt)
+
+	if err != nil {
+		log.Printf("Error fetching order receipt details for payment_external_id %s: %v\n", req.OrderIdExt, err)
+		return nil, status.Errorf(codes.Internal, "error fetching order receipt details: %v", err)
+	}
+	defer rows.Close()
+
+	log.Println("Processing order receipt details")
+	// Loop through results and gather order details
+	for rows.Next() {
+		err := rows.Scan(&userNameFirst, &userNameLast, &userEmail, &orderID, &totalPrice, &shoeModelName, &shoeSize, &quantity)
+		if err != nil {
+			log.Printf("Error scanning order details: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "error scanning order details: %v", err)
+		}
+		orderDetails = append(orderDetails, utils.OrderDetail{
+			ShoeName: shoeModelName,
+			ShoeSize: shoeSize,
+			Qty:      quantity,
+		})
+		log.Printf("Scanned order detail: %s, size=%d, quantity=%d", shoeModelName, shoeSize, quantity)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("Error processing order details: %v\n", err)
+		return nil, status.Errorf(codes.Internal, "error processing order details: %v", err)
+	}
+
+	// Create the order receipt email payload
+	orderReceipt := utils.OrderReceiptEmail{
+		UserName:    fmt.Sprintf("%s %s", userNameFirst, userNameLast),
+		UserEmail:   userEmail,
+		OrderId:     int64(orderID),
+		TotalPrice:  totalPrice,
+		OrderDetail: orderDetails,
+	}
+	log.Printf("Order receipt email created for user: %s (%s)", orderReceipt.UserName, userEmail)
+
+	// Send the receipt email using RabbitMQ
+	err = utils.SendReceiptEmail(orderReceipt, h.rmq)
+	if err != nil {
+		log.Printf("Error sending order receipt email for order_id %d: %v\n", orderID, err)
+		return nil, status.Errorf(codes.Internal, "error sending order receipt email: %v", err)
+	}
+	log.Println("Order receipt email sent successfully")
 
 	return &empty.Empty{}, nil
 }
-
-// TODO - Order History
 
 func (h *OrderHandler) GetOrderList(ctx context.Context, req *pb.GetOrderListRequest) (*pb.GetOrderListResponse, error) {
 	userId := req.UserId

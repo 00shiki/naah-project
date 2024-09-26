@@ -17,11 +17,12 @@ import (
 )
 
 type DeliveryHandler struct {
-	db *sql.DB
+	db  *sql.DB
+	rmq *utils.RabbitMQClient
 }
 
-func NewDeliveryHandler(db *sql.DB) *DeliveryHandler {
-	return &DeliveryHandler{db}
+func NewDeliveryHandler(db *sql.DB, rmq *utils.RabbitMQClient) *DeliveryHandler {
+	return &DeliveryHandler{db, rmq}
 }
 
 // DeliveryCost method
@@ -168,82 +169,111 @@ func (h *DeliveryHandler) GetCourier(ctx context.Context, req *empty.Empty) (*pb
 
 // CallbackDelivery handles updating delivery based on callback information
 func (h *DeliveryHandler) CallbackDelivery(ctx context.Context, req *pb.CallbackDeliveryRequest) (*emptypb.Empty, error) {
-	// Begin a transaction
+	log.Printf("CallbackDelivery initiated with Track ID: %s, Status: %s\n", req.TrackId, req.Status)
+
+	// Start a transaction
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {
-		log.Printf("Error beginning transaction: %v\n", err)
-		return nil, status.Errorf(codes.Internal, "error beginning transaction")
+		log.Printf("Error starting transaction: %v\n", err)
+		return nil, status.Errorf(codes.Internal, "failed to begin transaction: %v", err)
 	}
 
-	// Update the order and delivery status based on req.Status
+	// If status is 'delivered', update both order and delivery statuses
 	if strings.EqualFold(req.Status, "delivered") {
-		// Update the order status to 'delivered'
-		query := `UPDATE orders SET status = 'delivered' 
-                  WHERE order_id = (SELECT order_id FROM deliveries WHERE track_id = ?)`
+		// Update order status to 'delivered'
+		updateOrderQuery := `UPDATE orders SET status = 'delivered' 
+							 WHERE order_id = (SELECT order_id FROM deliveries WHERE track_id = ?)`
+		log.Printf("Executing query to update order status: %s\n", updateOrderQuery)
 
-		result, err := tx.ExecContext(ctx, query, req.TrackId)
+		orderResult, err := tx.ExecContext(ctx, updateOrderQuery, req.TrackId)
 		if err != nil {
 			tx.Rollback()
-			log.Printf("Error updating order: %v\n", err)
-			return nil, status.Errorf(codes.Internal, "error updating order: %v", err)
+			log.Printf("Error updating order status for Track ID %s: %v\n", req.TrackId, err)
+			return nil, status.Errorf(codes.Internal, "failed to update order status: %v", err)
 		}
 
-		rowsAffected, err := result.RowsAffected()
+		rowsAffected, err := orderResult.RowsAffected()
 		if err != nil || rowsAffected == 0 {
 			tx.Rollback()
-			log.Printf("No order found for track_id: %s\n", req.TrackId)
-			return nil, status.Errorf(codes.NotFound, "no order found for the given track_id")
+			log.Printf("No order found for Track ID: %s\n", req.TrackId)
+			return nil, status.Errorf(codes.NotFound, "no order found for the provided track ID: %s", req.TrackId)
 		}
 
-		// Update delivery status and delivery date
-		query = `UPDATE deliveries 
-                  SET status = ?, arrival_date = CURRENT_TIMESTAMP 
-                  WHERE track_id = ?`
+		// Update delivery status and set the arrival date
+		updateDeliveryQuery := `UPDATE deliveries 
+								SET status = ?, arrival_date = CURRENT_TIMESTAMP 
+								WHERE track_id = ?`
+		log.Printf("Executing query to update delivery status: %s\n", updateDeliveryQuery)
 
-		result, err = tx.ExecContext(ctx, query, req.Status, req.TrackId)
+		deliveryResult, err := tx.ExecContext(ctx, updateDeliveryQuery, req.Status, req.TrackId)
 		if err != nil {
 			tx.Rollback()
-			log.Printf("Error updating delivery: %v\n", err)
-			return nil, status.Errorf(codes.Internal, "error updating delivery: %v", err)
+			log.Printf("Error updating delivery status for Track ID %s: %v\n", req.TrackId, err)
+			return nil, status.Errorf(codes.Internal, "failed to update delivery status: %v", err)
 		}
 
-		rowsAffected, err = result.RowsAffected()
+		rowsAffected, err = deliveryResult.RowsAffected()
 		if err != nil || rowsAffected == 0 {
 			tx.Rollback()
-			log.Printf("No delivery found with track_id: %s\n", req.TrackId)
-			return nil, status.Errorf(codes.NotFound, "no delivery found with the given track_id")
+			log.Printf("No delivery found for Track ID: %s\n", req.TrackId)
+			return nil, status.Errorf(codes.NotFound, "no delivery found for the provided track ID: %s", req.TrackId)
 		}
+
+		// Retrieve the user email and order ID to send notification
+		var email string
+		var orderId int
+		getEmailQuery := `SELECT users.email, orders.order_id 
+						  FROM deliveries
+						  JOIN orders ON deliveries.order_id = orders.order_id
+						  JOIN users ON orders.user_id = users.user_id
+						  WHERE deliveries.track_id = ?`
+		log.Printf("Executing query to fetch email and order ID: %s\n", getEmailQuery)
+
+		err = tx.QueryRowContext(ctx, getEmailQuery, req.TrackId).Scan(&email, &orderId)
+		if err != nil {
+			tx.Rollback()
+			if err == sql.ErrNoRows {
+				log.Printf("No email or order found for Track ID: %s\n", req.TrackId)
+				return nil, status.Errorf(codes.NotFound, "no associated user found for the provided track ID: %v", err)
+			}
+			log.Printf("Error fetching email and order ID for Track ID %s: %v\n", req.TrackId, err)
+			return nil, status.Errorf(codes.Internal, "error retrieving associated email or order: %v", err)
+		}
+
+		// Send email notification for successful delivery
+		log.Printf("Sending delivered notification email to: %s for Order ID: %d\n", email, orderId)
+		utils.SendDeliveredEmail(email, orderId, h.rmq)
 
 	} else {
-		// If the status is not 'delivered', only update the deliveries status
-		query := `UPDATE deliveries 
-                  SET status = ? 
-                  WHERE track_id = ?`
+		// If status is not 'delivered', just update the delivery status
+		updateDeliveryQuery := `UPDATE deliveries SET status = ? WHERE track_id = ?`
+		log.Printf("Executing query to update delivery status for non-delivered status: %s\n", updateDeliveryQuery)
 
-		result, err := tx.ExecContext(ctx, query, req.Status, req.TrackId)
+		deliveryResult, err := tx.ExecContext(ctx, updateDeliveryQuery, req.Status, req.TrackId)
 		if err != nil {
 			tx.Rollback()
-			log.Printf("Error updating delivery: %v\n", err)
-			return nil, status.Errorf(codes.Internal, "error updating delivery: %v", err)
+			log.Printf("Error updating delivery status for Track ID %s: %v\n", req.TrackId, err)
+			return nil, status.Errorf(codes.Internal, "failed to update delivery status: %v", err)
 		}
 
-		rowsAffected, err := result.RowsAffected()
+		rowsAffected, err := deliveryResult.RowsAffected()
 		if err != nil || rowsAffected == 0 {
 			tx.Rollback()
-			log.Printf("No delivery found with track_id: %s\n", req.TrackId)
-			return nil, status.Errorf(codes.NotFound, "no delivery found with the given track_id")
+			log.Printf("No delivery found for Track ID: %s\n", req.TrackId)
+			return nil, status.Errorf(codes.NotFound, "no delivery found for the provided track ID: %s", req.TrackId)
 		}
 	}
 
 	// Commit the transaction
 	if err := tx.Commit(); err != nil {
-		log.Printf("Error committing transaction: %v\n", err)
-		return nil, status.Errorf(codes.Internal, "error committing transaction")
+		log.Printf("Error committing transaction for Track ID %s: %v\n", req.TrackId, err)
+		return nil, status.Errorf(codes.Internal, "failed to commit transaction: %v", err)
 	}
 
-	log.Printf("Successfully updated delivery with Track ID: %s, Status: %s\n", req.TrackId, req.Status)
+	log.Printf("Successfully updated delivery and order status for Track ID: %s, Status: %s\n", req.TrackId, req.Status)
 	return &emptypb.Empty{}, nil
 }
+
 func (h *DeliveryHandler) InputTrackId(ctx context.Context, req *pb.InputTrackIdRequest) (*emptypb.Empty, error) {
 	// Begin transaction
 	tx, err := h.db.BeginTx(ctx, nil)

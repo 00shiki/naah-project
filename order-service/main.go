@@ -8,6 +8,7 @@ import (
 	"order-service/database"
 	"order-service/handler"
 	"order-service/pb"
+	"order-service/utils"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -23,10 +24,14 @@ func main() {
 
 	db := database.GetDB()
 	defer db.Close()
+	rmq, err := utils.NewRabbitMQClient("amqp://guest:guest@35.185.129.83:5672/")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	cartHandler := handler.NewCartHandler(db)
-	deliveryHandler := handler.NewDeliveryHandler(db)
-	orderHandler := handler.NewOrderHandler(db)
+	deliveryHandler := handler.NewDeliveryHandler(db, rmq)
+	orderHandler := handler.NewOrderHandler(db, rmq)
 	voucherHandler := handler.NewVoucherHandler(db)
 
 	s := grpc.NewServer()
