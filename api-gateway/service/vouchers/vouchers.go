@@ -12,8 +12,8 @@ type VoucherService struct {
 	client pb.VoucherServiceClient
 }
 
-func NewVoucherService(client pb.VoucherServiceClient) VoucherService {
-	return VoucherService{
+func NewVoucherService(client pb.VoucherServiceClient) *VoucherService {
+	return &VoucherService{
 		client: client,
 	}
 }
