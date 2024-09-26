@@ -1,5 +1,23 @@
 basePath: /api/v1
 definitions:
+  handlers.CreateShoeDetailRequest:
+    properties:
+      shoe_detail:
+        $ref: '#/definitions/models.ShoeDetail'
+      shoe_model:
+        $ref: '#/definitions/models.ShoeModel'
+    type: object
+  models.ShoeDetail:
+    properties:
+      model_id:
+        type: integer
+      shoe_id:
+        type: integer
+      size:
+        type: integer
+      stock:
+        type: integer
+    type: object
   models.ShoeModel:
     properties:
       model_id:
@@ -17,11 +35,11 @@ info:
   title: CRUD NAAH PROJECT API
   version: 1.0.0
 paths:
-  /admin/shoe-models:
+  /customer/shoe-details:
     get:
       consumes:
       - application/json
-      description: Get a list of all shoe models
+      description: Retrieve a list of all available shoe details
       produces:
       - application/json
       responses:
@@ -29,7 +47,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.ShoeModel'
+              $ref: '#/definitions/models.ShoeDetail'
             type: array
         "500":
           description: Internal Server Error
@@ -37,27 +55,85 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Retrieve all shoe models
+      summary: Fetch all shoe details for customers
       tags:
-      - shoe-models
+      - shoe-details
+  /customer/shoe-details/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific shoe detail by its ID
+      parameters:
+      - description: Shoe Detail ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ShoeDetail'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Fetch a shoe detail by ID for customers
+      tags:
+      - shoe-details
+  /shoe-details:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all shoe details including shoe_id, model_id, size, stock,
+        name, and price
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all shoe details
+      tags:
+      - shoe-details
     post:
       consumes:
       - application/json
-      description: Create a new shoe model with the given data
+      description: Add a new shoe detail and model to the database
       parameters:
-      - description: Shoe Model
+      - description: Shoe Detail and Model
         in: body
-        name: shoeModel
+        name: request
         required: true
         schema:
-          $ref: '#/definitions/models.ShoeModel'
+          $ref: '#/definitions/handlers.CreateShoeDetailRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.ShoeModel'
+            $ref: '#/definitions/models.ShoeDetail'
         "400":
           description: Bad Request
           schema:
@@ -70,16 +146,16 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Create a new shoe model
+      summary: Create a new shoe detail and model
       tags:
-      - shoe-models
-  /admin/shoe-models/{id}:
+      - shoe-details
+  /shoe-details/{id}:
     delete:
       consumes:
       - application/json
-      description: Delete the shoe model with the given ID
+      description: Remove a shoe detail from the database using the shoe ID
       parameters:
-      - description: Shoe Model ID
+      - description: Shoe ID
         in: path
         name: id
         required: true
@@ -87,16 +163,14 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
+        "200":
+          description: OK
           schema:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Not Found
+        "400":
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
@@ -107,15 +181,15 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Delete a shoe model
+      summary: Delete a shoe detail by ID
       tags:
-      - shoe-models
+      - shoe-details
     get:
       consumes:
       - application/json
-      description: Get a shoe model by its ID
+      description: Retrieve a specific shoe detail by shoe_id including name and price
       parameters:
-      - description: Shoe Model ID
+      - description: Shoe ID
         in: path
         name: id
         required: true
@@ -126,7 +200,8 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.ShoeModel'
+            additionalProperties: true
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -139,107 +214,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Retrieve a shoe model by ID
+      summary: Get a shoe detail by ID
       tags:
-      - shoe-models
-    put:
-      consumes:
-      - application/json
-      description: Update the shoe model with the given ID
-      parameters:
-      - description: Shoe Model ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Updated Shoe Model
-        in: body
-        name: shoeModel
-        required: true
-        schema:
-          $ref: '#/definitions/models.ShoeModel'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.ShoeModel'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Update a shoe model
-      tags:
-      - shoe-models
-  /products:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve a list of all available products
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/models.ShoeModel'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Fetch all products for customers
-      tags:
-      - products
-  /products/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve a specific product by its ID
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.ShoeModel'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Fetch a product by ID for customers
-      tags:
-      - products
+      - shoe-details
 swagger: "2.0"

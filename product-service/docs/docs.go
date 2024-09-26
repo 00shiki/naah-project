@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/admin/shoe-models": {
+        "/customer/shoe-details": {
             "get": {
-                "description": "Get a list of all shoe models",
+                "description": "Retrieve a list of all available shoe details",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,16 +25,102 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "shoe-models"
+                    "shoe-details"
                 ],
-                "summary": "Retrieve all shoe models",
+                "summary": "Fetch all shoe details for customers",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.ShoeModel"
+                                "$ref": "#/definitions/models.ShoeDetail"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customer/shoe-details/{id}": {
+            "get": {
+                "description": "Retrieve a specific shoe detail by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shoe-details"
+                ],
+                "summary": "Fetch a shoe detail by ID for customers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Shoe Detail ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ShoeDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/shoe-details": {
+            "get": {
+                "description": "Retrieve all shoe details including shoe_id, model_id, size, stock, name, and price",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "shoe-details"
+                ],
+                "summary": "Get all shoe details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
                             }
                         }
                     },
@@ -50,7 +136,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new shoe model with the given data",
+                "description": "Add a new shoe detail and model to the database",
                 "consumes": [
                     "application/json"
                 ],
@@ -58,17 +144,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "shoe-models"
+                    "shoe-details"
                 ],
-                "summary": "Create a new shoe model",
+                "summary": "Create a new shoe detail and model",
                 "parameters": [
                     {
-                        "description": "Shoe Model",
-                        "name": "shoeModel",
+                        "description": "Shoe Detail and Model",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ShoeModel"
+                            "$ref": "#/definitions/handlers.CreateShoeDetailRequest"
                         }
                     }
                 ],
@@ -76,7 +162,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.ShoeModel"
+                            "$ref": "#/definitions/models.ShoeDetail"
                         }
                     },
                     "400": {
@@ -100,9 +186,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/shoe-models/{id}": {
+        "/shoe-details/{id}": {
             "get": {
-                "description": "Get a shoe model by its ID",
+                "description": "Retrieve a specific shoe detail by shoe_id including name and price",
                 "consumes": [
                     "application/json"
                 ],
@@ -110,13 +196,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "shoe-models"
+                    "shoe-details"
                 ],
-                "summary": "Retrieve a shoe model by ID",
+                "summary": "Get a shoe detail by ID",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Shoe Model ID",
+                        "description": "Shoe ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -126,7 +212,8 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.ShoeModel"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -140,72 +227,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update the shoe model with the given ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "shoe-models"
-                ],
-                "summary": "Update a shoe model",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Shoe Model ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated Shoe Model",
-                        "name": "shoeModel",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ShoeModel"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.ShoeModel"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -216,7 +237,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete the shoe model with the given ID",
+                "description": "Remove a shoe detail from the database using the shoe ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -224,104 +245,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "shoe-models"
+                    "shoe-details"
                 ],
-                "summary": "Delete a shoe model",
+                "summary": "Delete a shoe detail by ID",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Shoe Model ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/products": {
-            "get": {
-                "description": "Retrieve a list of all available products",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "products"
-                ],
-                "summary": "Fetch all products for customers",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.ShoeModel"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/products/{id}": {
-            "get": {
-                "description": "Retrieve a specific product by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "products"
-                ],
-                "summary": "Fetch a product by ID for customers",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Product ID",
+                        "description": "Shoe ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -331,7 +261,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.ShoeModel"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "400": {
@@ -343,8 +276,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -357,6 +290,34 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handlers.CreateShoeDetailRequest": {
+            "type": "object",
+            "properties": {
+                "shoe_detail": {
+                    "$ref": "#/definitions/models.ShoeDetail"
+                },
+                "shoe_model": {
+                    "$ref": "#/definitions/models.ShoeModel"
+                }
+            }
+        },
+        "models.ShoeDetail": {
+            "type": "object",
+            "properties": {
+                "model_id": {
+                    "type": "integer"
+                },
+                "shoe_id": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "stock": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.ShoeModel": {
             "type": "object",
             "properties": {

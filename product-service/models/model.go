@@ -33,6 +33,11 @@ type ShoeDetail struct {
 	Stock   int `json:"stock"`
 }
 
+type UpdateShoeDetailRequest struct {
+	ShoeDetail ShoeDetail `json:"shoe_detail"`
+	ShoeModel  ShoeModel  `json:"shoe_model"`
+}
+
 type Cart struct {
 	CartID   int `json:"cart_id"`
 	UserID   int `json:"user_id"`

@@ -11,62 +11,83 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// GetProductsForCustomer godoc
-// @Summary Fetch all products for customers
-// @Description Retrieve a list of all available products
-// @Tags products
+// GetShoeDetailsForCustomer godoc
+// @Summary Fetch all shoe details for customers
+// @Description Retrieve a list of all available shoe details
+// @Tags shoe-details
 // @Accept json
 // @Produce json
-// @Success 200 {array} models.ShoeModel
+// @Success 200 {array} models.ShoeDetail
 // @Failure 500 {object} map[string]string
-// @Router /products [get]
-func GetProductsForCustomer(c echo.Context) error {
-	log.Println("Fetching all products")
-	query := "SELECT model_id, name, price FROM shoe_models"
+// @Router /customer/shoe-details [get]
+func GetShoeDetailsForCustomer(c echo.Context) error {
+	log.Println("Fetching all shoe details")
+	query := `
+		SELECT d.shoe_id, d.model_id, d.size, d.stock, m.name, m.price 
+		FROM shoe_details d 
+		JOIN shoe_models m ON d.model_id = m.model_id`
 	rows, err := config.DB.Query(query)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch products", "error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch shoe details", "error": err.Error()})
 	}
 	defer rows.Close()
 
-	var products []models.ShoeModel
-	for rows.Next() {
-		var product models.ShoeModel
-		if err := rows.Scan(&product.ModelID, &product.Name, &product.Price); err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not scan product", "error": err.Error()})
-		}
-		products = append(products, product)
+	var shoeDetails []struct {
+		models.ShoeDetail
+		Name  string `json:"name"`
+		Price int    `json:"price"`
 	}
-	return c.JSON(http.StatusOK, products)
+
+	for rows.Next() {
+		var shoeDetail struct {
+			models.ShoeDetail
+			Name  string `json:"name"`
+			Price int    `json:"price"`
+		}
+		if err := rows.Scan(&shoeDetail.ShoeID, &shoeDetail.ModelID, &shoeDetail.Size, &shoeDetail.Stock, &shoeDetail.Name, &shoeDetail.Price); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not scan shoe detail", "error": err.Error()})
+		}
+		shoeDetails = append(shoeDetails, shoeDetail)
+	}
+	return c.JSON(http.StatusOK, shoeDetails)
 }
 
-// GetProductForCustomerByID godoc
-// @Summary Fetch a product by ID for customers
-// @Description Retrieve a specific product by its ID
-// @Tags products
+// GetShoeDetailForCustomerByID godoc
+// @Summary Fetch a shoe detail by ID for customers
+// @Description Retrieve a specific shoe detail by its ID
+// @Tags shoe-details
 // @Accept json
 // @Produce json
-// @Param id path int true "Product ID"
-// @Success 200 {object} models.ShoeModel
+// @Param id path int true "Shoe Detail ID"
+// @Success 200 {object} models.ShoeDetail
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
-// @Router /products/{id} [get]
-func GetProductForCustomerByID(c echo.Context) error {
-	log.Println("Fetching product by ID")
+// @Router /customer/shoe-details/{id} [get]
+func GetShoeDetailForCustomerByID(c echo.Context) error {
+	log.Println("Fetching shoe detail by ID")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid product ID"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid shoe detail ID"})
 	}
 
-	query := "SELECT model_id, name, price FROM shoe_models WHERE model_id = ?"
+	query := `
+		SELECT d.shoe_id, d.model_id, d.size, d.stock, m.name, m.price 
+		FROM shoe_details d 
+		JOIN shoe_models m ON d.model_id = m.model_id 
+		WHERE d.shoe_id = ?`
 	row := config.DB.QueryRow(query, id)
 
-	var product models.ShoeModel
-	if err := row.Scan(&product.ModelID, &product.Name, &product.Price); err != nil {
-		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, map[string]string{"message": "Product not found"})
-		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch product", "error": err.Error()})
+	var shoeDetail struct {
+		models.ShoeDetail
+		Name  string `json:"name"`
+		Price int    `json:"price"`
 	}
-	return c.JSON(http.StatusOK, product)
+
+	if err := row.Scan(&shoeDetail.ShoeID, &shoeDetail.ModelID, &shoeDetail.Size, &shoeDetail.Stock, &shoeDetail.Name, &shoeDetail.Price); err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, map[string]string{"message": "Shoe detail not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch shoe detail", "error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, shoeDetail)
 }
