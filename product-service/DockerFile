@@ -1,0 +1,9 @@
+FROM golang:1.22.5-windows-amd64
+
+WORKDIR /app
+
+COPY . .
+
+RUN go build -o main .
+
+CMD ("./main")
