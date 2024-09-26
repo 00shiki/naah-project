@@ -22,6 +22,8 @@ var DELIVERY_CITY_URL string
 var XENDIT_SECRET_KEY string
 var XENDIT_INVOICE_URL string
 
+var RMQ_URL string
+
 func InitConfig() {
 	err := godotenv.Load("config/.env")
 	if err != nil {
@@ -40,6 +42,7 @@ func InitConfig() {
 	XENDIT_SECRET_KEY = os.Getenv("XENDIT_SECRET_KEY")
 	XENDIT_INVOICE_URL = os.Getenv("XENDIT_INVOICE_URL")
 	PORT = os.Getenv("PORT")
+	RMQ_URL = os.Getenv("RMQ_URL")
 
 	log.Println("SUCCESS INITIATE CONFIG")
 

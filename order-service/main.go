@@ -24,7 +24,7 @@ func main() {
 
 	db := database.GetDB()
 	defer db.Close()
-	rmq, err := utils.NewRabbitMQClient("amqp://guest:guest@35.185.129.83:5672/")
+	rmq, err := utils.NewRabbitMQClient(config.RMQ_URL)
 	if err != nil {
 		log.Fatal(err)
 	}
