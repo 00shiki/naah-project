@@ -150,7 +150,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Update the details of a shoe model by ID",
+                "description": "Update the shoe model with the given ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -170,7 +170,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Shoe Model",
+                        "description": "Updated Shoe Model",
                         "name": "shoeModel",
                         "in": "body",
                         "required": true,
@@ -216,7 +216,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete a shoe model by ID",
+                "description": "Delete the shoe model with the given ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -237,14 +237,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -366,7 +360,7 @@ const docTemplate = `{
         "models.ShoeModel": {
             "type": "object",
             "properties": {
-                "modelID": {
+                "model_id": {
                     "type": "integer"
                 },
                 "name": {

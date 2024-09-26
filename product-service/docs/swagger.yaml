@@ -2,7 +2,7 @@ basePath: /api/v1
 definitions:
   models.ShoeModel:
     properties:
-      modelID:
+      model_id:
         type: integer
       name:
         type: string
@@ -77,7 +77,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete a shoe model by ID
+      description: Delete the shoe model with the given ID
       parameters:
       - description: Shoe Model ID
         in: path
@@ -87,12 +87,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:
@@ -149,14 +145,14 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update the details of a shoe model by ID
+      description: Update the shoe model with the given ID
       parameters:
       - description: Shoe Model ID
         in: path
         name: id
         required: true
         type: integer
-      - description: Shoe Model
+      - description: Updated Shoe Model
         in: body
         name: shoeModel
         required: true
