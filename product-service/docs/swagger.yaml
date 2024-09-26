@@ -1,0 +1,249 @@
+basePath: /api/v1
+definitions:
+  models.ShoeModel:
+    properties:
+      modelID:
+        type: integer
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+host: localhost:50052
+info:
+  contact: {}
+  description: This is the API documentation for the CRUD NAAH PROJECT, a comprehensive
+    system designed to manage shoe models and customer interactions.
+  title: CRUD NAAH PROJECT API
+  version: 1.0.0
+paths:
+  /admin/shoe-models:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all shoe models
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ShoeModel'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve all shoe models
+      tags:
+      - shoe-models
+    post:
+      consumes:
+      - application/json
+      description: Create a new shoe model with the given data
+      parameters:
+      - description: Shoe Model
+        in: body
+        name: shoeModel
+        required: true
+        schema:
+          $ref: '#/definitions/models.ShoeModel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ShoeModel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new shoe model
+      tags:
+      - shoe-models
+  /admin/shoe-models/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a shoe model by ID
+      parameters:
+      - description: Shoe Model ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a shoe model
+      tags:
+      - shoe-models
+    get:
+      consumes:
+      - application/json
+      description: Get a shoe model by its ID
+      parameters:
+      - description: Shoe Model ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ShoeModel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Retrieve a shoe model by ID
+      tags:
+      - shoe-models
+    put:
+      consumes:
+      - application/json
+      description: Update the details of a shoe model by ID
+      parameters:
+      - description: Shoe Model ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Shoe Model
+        in: body
+        name: shoeModel
+        required: true
+        schema:
+          $ref: '#/definitions/models.ShoeModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ShoeModel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a shoe model
+      tags:
+      - shoe-models
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all available products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ShoeModel'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Fetch all products for customers
+      tags:
+      - products
+  /products/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ShoeModel'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Fetch a product by ID for customers
+      tags:
+      - products
+swagger: "2.0"

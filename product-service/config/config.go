@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"product-service/models"
 
@@ -36,6 +35,7 @@ func InitDB() *gorm.DB {
 
 	log.Println("Successfully connected to the database")
 
+	// Auto migrate models
 	if err := DB.AutoMigrate(
 		&models.User{},
 		&models.ShoeModel{},
@@ -47,11 +47,7 @@ func InitDB() *gorm.DB {
 		&models.Delivery{},
 		&models.Voucher{},
 	); err != nil {
-		if strings.Contains(err.Error(), "already exists") {
-			log.Println("Table already exists, skipping migration for that table.")
-		} else {
-			log.Fatalf("Failed to auto-migrate models: %v", err)
-		}
+		log.Fatal("Failed to auto migrate models:", err)
 	}
 
 	log.Println("Successfully auto-migrated models")

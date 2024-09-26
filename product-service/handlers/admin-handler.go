@@ -9,7 +9,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// admin create
+// CreateShoeModel godoc
+// @Summary Create a new shoe model
+// @Description Create a new shoe model with the given data
+// @Tags shoe-models
+// @Accept json
+// @Produce json
+// @Param shoeModel body models.ShoeModel true "Shoe Model"
+// @Success 201 {object} models.ShoeModel
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /admin/shoe-models [post]
 func CreateShoeModel(c echo.Context) error {
 	shoeModel := new(models.ShoeModel)
 	if err := c.Bind(shoeModel); err != nil {
@@ -23,7 +33,15 @@ func CreateShoeModel(c echo.Context) error {
 	return c.JSON(http.StatusCreated, shoeModel)
 }
 
-// admin retrieve
+// GetShoeModels godoc
+// @Summary Retrieve all shoe models
+// @Description Get a list of all shoe models
+// @Tags shoe-models
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.ShoeModel
+// @Failure 500 {object} map[string]string
+// @Router /admin/shoe-models [get]
 func GetShoeModels(c echo.Context) error {
 	var shoeModels []models.ShoeModel
 	if err := config.DB.Find(&shoeModels).Error; err != nil {
@@ -32,7 +50,17 @@ func GetShoeModels(c echo.Context) error {
 	return c.JSON(http.StatusOK, shoeModels)
 }
 
-// admin retrieve by id
+// GetShoeModelByID godoc
+// @Summary Retrieve a shoe model by ID
+// @Description Get a shoe model by its ID
+// @Tags shoe-models
+// @Accept json
+// @Produce json
+// @Param id path int true "Shoe Model ID"
+// @Success 200 {object} models.ShoeModel
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /admin/shoe-models/{id} [get]
 func GetShoeModelByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -46,7 +74,19 @@ func GetShoeModelByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, shoeModel)
 }
 
-// admin update
+// UpdateShoeModel godoc
+// @Summary Update a shoe model
+// @Description Update the details of a shoe model by ID
+// @Tags shoe-models
+// @Accept json
+// @Produce json
+// @Param id path int true "Shoe Model ID"
+// @Param shoeModel body models.ShoeModel true "Shoe Model"
+// @Success 200 {object} models.ShoeModel
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /admin/shoe-models/{id} [put]
 func UpdateShoeModel(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -69,7 +109,18 @@ func UpdateShoeModel(c echo.Context) error {
 	return c.JSON(http.StatusOK, shoeModel)
 }
 
-// admin delete
+// DeleteShoeModel godoc
+// @Summary Delete a shoe model
+// @Description Delete a shoe model by ID
+// @Tags shoe-models
+// @Accept json
+// @Produce json
+// @Param id path int true "Shoe Model ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /admin/shoe-models/{id} [delete]
 func DeleteShoeModel(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
