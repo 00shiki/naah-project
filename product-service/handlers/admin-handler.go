@@ -10,163 +10,218 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CreateShoeModel godoc
-// @Summary Create a new shoe model
-// @Description Create a new shoe model with the given data
-// @Tags shoe-models
-// @Accept json
-// @Produce json
-// @Param shoeModel body models.ShoeModel true "Shoe Model"
-// @Success 201 {object} models.ShoeModel
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /admin/shoe-models [post]
-func CreateShoeModel(c echo.Context) error {
-	shoeModel := new(models.ShoeModel)
-	if err := c.Bind(shoeModel); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid input", "error": err.Error()})
-	}
-
-	query := "INSERT INTO shoe_models (name, price) VALUES (?, ?)"
-	result, err := config.DB.Exec(query, shoeModel.Name, shoeModel.Price)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not create shoe model", "error": err.Error()})
-	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not retrieve inserted ID", "error": err.Error()})
-	}
-
-	shoeModel.ModelID = int(id)
-	return c.JSON(http.StatusCreated, shoeModel)
-}
-
-// GetShoeModels godoc
-// @Summary Retrieve all shoe models
-// @Description Get a list of all shoe models
-// @Tags shoe-models
-// @Accept json
-// @Produce json
-// @Success 200 {array} models.ShoeModel
-// @Failure 500 {object} map[string]string
-// @Router /admin/shoe-models [get]
-func GetShoeModels(c echo.Context) error {
-	query := "SELECT model_id, name, price FROM shoe_models"
+// GetShoeDetails godoc
+// @Summary      Get all shoe details
+// @Description  Retrieve all shoe details including shoe_id, model_id, size, stock, name, and price
+// @Tags         shoe-details
+// @Accept       json
+// @Produce      json
+// @Success      200 {array} map[string]interface{}
+// @Failure      500 {object} map[string]string
+// @Router       /shoe-details [get]
+func GetShoeDetails(c echo.Context) error {
+	query := `
+		SELECT sd.shoe_id, sd.model_id, sd.size, sd.stock, sm.name, sm.price 
+		FROM shoe_details sd 
+		JOIN shoe_models sm ON sd.model_id = sm.model_id
+	`
 	rows, err := config.DB.Query(query)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch shoe models", "error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch shoe details"})
 	}
 	defer rows.Close()
 
-	var shoeModels []models.ShoeModel
+	var shoeDetails []map[string]interface{}
 	for rows.Next() {
-		var shoeModel models.ShoeModel
-		if err := rows.Scan(&shoeModel.ModelID, &shoeModel.Name, &shoeModel.Price); err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not scan shoe model", "error": err.Error()})
+		var shoeDetail models.ShoeDetail
+		var name string
+		var price int
+		if err := rows.Scan(&shoeDetail.ShoeID, &shoeDetail.ModelID, &shoeDetail.Size, &shoeDetail.Stock, &name, &price); err != nil {
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to scan shoe details"})
 		}
-		shoeModels = append(shoeModels, shoeModel)
+		shoeDetails = append(shoeDetails, map[string]interface{}{
+			"shoe_id":  shoeDetail.ShoeID,
+			"model_id": shoeDetail.ModelID,
+			"size":     shoeDetail.Size,
+			"stock":    shoeDetail.Stock,
+			"name":     name,
+			"price":    price,
+		})
 	}
-	return c.JSON(http.StatusOK, shoeModels)
+
+	return c.JSON(http.StatusOK, shoeDetails)
 }
 
-// GetShoeModelByID godoc
-// @Summary Retrieve a shoe model by ID
-// @Description Get a shoe model by its ID
-// @Tags shoe-models
-// @Accept json
-// @Produce json
-// @Param id path int true "Shoe Model ID"
-// @Success 200 {object} models.ShoeModel
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Router /admin/shoe-models/{id} [get]
-func GetShoeModelByID(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
+// GetShoeDetailByID godoc
+// @Summary      Get a shoe detail by ID
+// @Description  Retrieve a specific shoe detail by shoe_id including name and price
+// @Tags         shoe-details
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Shoe ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Router       /shoe-details/{id} [get]
+func GetShoeDetailByID(c echo.Context) error {
+	shoeID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid shoe model ID"})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid shoe ID"})
 	}
 
-	query := "SELECT model_id, name, price FROM shoe_models WHERE model_id = ?"
-	row := config.DB.QueryRow(query, id)
-
-	var shoeModel models.ShoeModel
-	if err := row.Scan(&shoeModel.ModelID, &shoeModel.Name, &shoeModel.Price); err != nil {
+	var shoeDetail models.ShoeDetail
+	var name string
+	var price int
+	query := `
+		SELECT sd.shoe_id, sd.model_id, sd.size, sd.stock, sm.name, sm.price 
+		FROM shoe_details sd 
+		JOIN shoe_models sm ON sd.model_id = sm.model_id 
+		WHERE sd.shoe_id = ?
+	`
+	err = config.DB.QueryRow(query, shoeID).Scan(&shoeDetail.ShoeID, &shoeDetail.ModelID, &shoeDetail.Size, &shoeDetail.Stock, &name, &price)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, map[string]string{"message": "Shoe model not found"})
+			return c.JSON(http.StatusNotFound, echo.Map{"error": "Shoe detail not found"})
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch shoe model", "error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to fetch shoe detail"})
 	}
 
-	return c.JSON(http.StatusOK, shoeModel)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"shoe_id":  shoeDetail.ShoeID,
+		"model_id": shoeDetail.ModelID,
+		"size":     shoeDetail.Size,
+		"stock":    shoeDetail.Stock,
+		"name":     name,
+		"price":    price,
+	})
 }
 
-// UpdateShoeModel godoc
-// @Summary Update a shoe model
-// @Description Update the shoe model with the given ID
-// @Tags shoe-models
-// @Accept json
-// @Produce json
-// @Param id path int true "Shoe Model ID"
-// @Param shoeModel body models.ShoeModel true "Updated Shoe Model"
-// @Success 200 {object} models.ShoeModel
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /admin/shoe-models/{id} [put]
-func UpdateShoeModel(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid shoe model ID"})
-	}
-
-	shoeModel := new(models.ShoeModel)
-	if err := c.Bind(shoeModel); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid input", "error": err.Error()})
-	}
-
-	query := "UPDATE shoe_models SET name = ?, price = ? WHERE model_id = ?"
-	_, err = config.DB.Exec(query, shoeModel.Name, shoeModel.Price, id)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not update shoe model", "error": err.Error()})
-	}
-
-	shoeModel.ModelID = id
-	return c.JSON(http.StatusOK, shoeModel)
+// CreateShoeDetailRequest represents the request body for creating a shoe detail and model
+type CreateShoeDetailRequest struct {
+	ShoeDetail models.ShoeDetail `json:"shoe_detail"`
+	ShoeModel  models.ShoeModel  `json:"shoe_model"`
 }
 
-// DeleteShoeModel godoc
-// @Summary Delete a shoe model
-// @Description Delete the shoe model with the given ID
-// @Tags shoe-models
-// @Accept json
-// @Produce json
-// @Param id path int true "Shoe Model ID"
-// @Success 204
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /admin/shoe-models/{id} [delete]
-func DeleteShoeModel(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
+// CreateShoeDetail godoc
+// @Summary      Create a new shoe detail and model
+// @Description  Add a new shoe detail and model to the database
+// @Tags         shoe-details
+// @Accept       json
+// @Produce      json
+// @Param        request body      CreateShoeDetailRequest true "Shoe Detail and Model"
+// @Success      201       {object}  models.ShoeDetail
+// @Failure      400       {object}  map[string]string
+// @Failure      500       {object}  map[string]string
+// @Router       /shoe-details [post]
+func CreateShoeDetail(c echo.Context) error {
+	request := new(CreateShoeDetailRequest)
+	if err := c.Bind(request); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request body"})
+	}
+
+	// Insert the shoe model first
+	modelQuery := "INSERT INTO shoe_models (name, price) VALUES (?, ?)"
+	modelRes, err := config.DB.Exec(modelQuery, request.ShoeModel.Name, request.ShoeModel.Price)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid shoe model ID"})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to insert shoe model"})
 	}
 
-	query := "DELETE FROM shoe_models WHERE model_id = ?"
-	result, err := config.DB.Exec(query, id)
+	// Get the last inserted model ID
+	lastModelID, err := modelRes.LastInsertId()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not delete shoe model", "error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to retrieve last insert model ID"})
 	}
 
-	rowsAffected, err := result.RowsAffected()
+	// Now insert the shoe detail with the new model ID
+	shoeDetail := request.ShoeDetail
+	shoeDetail.ModelID = int(lastModelID) // Set the model ID to the newly inserted model ID
+
+	query := "INSERT INTO shoe_details (model_id, size, stock) VALUES (?, ?, ?)"
+	res, err := config.DB.Exec(query, shoeDetail.ModelID, shoeDetail.Size, shoeDetail.Stock)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not check if shoe model was deleted", "error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to insert shoe detail"})
 	}
 
-	if rowsAffected == 0 {
-		return c.JSON(http.StatusNotFound, map[string]string{"message": "Shoe model not found"})
+	// Get the last inserted shoe detail ID
+	lastShoeDetailID, err := res.LastInsertId()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to retrieve last insert shoe detail ID"})
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	shoeDetail.ShoeID = int(lastShoeDetailID) // Set the shoe ID to the newly inserted shoe detail ID
+	return c.JSON(http.StatusCreated, shoeDetail)
+}
+
+type UpdateShoeDetailRequest struct {
+	ShoeDetail models.ShoeDetail `json:"shoe_detail"`
+	ShoeModel  models.ShoeModel  `json:"shoe_model"`
+}
+
+// UpdateShoeDetail godoc
+// @Summary      Update an existing shoe detail by ID
+// @Description  Modify an existing shoe detail and shoe model using the shoe ID
+// @Tags         shoe-details
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "Shoe ID"
+// @Param        updateRequest body UpdateShoeDetailRequest true "Update Shoe Detail Request"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /shoe-details/{id} [put]
+
+func UpdateShoeDetail(c echo.Context) error {
+	shoeID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid shoe ID"})
+	}
+
+	updateRequest := new(UpdateShoeDetailRequest)
+	if err := c.Bind(updateRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request body"})
+	}
+
+	// Update Shoe Detail
+	shoeDetail := updateRequest.ShoeDetail
+	query := "UPDATE shoe_details SET model_id = ?, size = ?, stock = ? WHERE shoe_id = ?"
+	_, err = config.DB.Exec(query, shoeDetail.ModelID, shoeDetail.Size, shoeDetail.Stock, shoeID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to update shoe detail"})
+	}
+
+	// Update Shoe Model
+	shoeModel := updateRequest.ShoeModel
+	modelQuery := "UPDATE shoe_models SET name = ?, price = ? WHERE model_id = (SELECT model_id FROM shoe_details WHERE shoe_id = ?)"
+	_, err = config.DB.Exec(modelQuery, shoeModel.Name, shoeModel.Price, shoeID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to update shoe model"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Shoe detail updated successfully"})
+}
+
+// DeleteShoeDetail godoc
+// @Summary      Delete a shoe detail by ID
+// @Description  Remove a shoe detail from the database using the shoe ID
+// @Tags         shoe-details
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "Shoe ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /shoe-details/{id} [delete]
+func DeleteShoeDetail(c echo.Context) error {
+	shoeID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid shoe ID"})
+	}
+
+	query := "DELETE FROM shoe_details WHERE shoe_id = ?"
+	_, err = config.DB.Exec(query, shoeID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to delete shoe detail"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "Shoe detail deleted successfully"})
 }

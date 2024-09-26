@@ -22,17 +22,18 @@ func main() {
 	config.InitDB()
 
 	// Admin routes
+	// Admin routes
 	admin := e.Group("/admin")
-	admin.POST("/shoe-models", handlers.CreateShoeModel)
-	admin.GET("/shoe-models", handlers.GetShoeModels)
-	admin.GET("/shoe-models/:id", handlers.GetShoeModelByID)
-	admin.PUT("/shoe-models/:id", handlers.UpdateShoeModel)
-	admin.DELETE("/shoe-models/:id", handlers.DeleteShoeModel)
+	admin.POST("/shoe-details", handlers.CreateShoeDetail)       // Create shoe detail
+	admin.GET("/shoe-details", handlers.GetShoeDetails)          // Get all shoe details
+	admin.GET("/shoe-details/:id", handlers.GetShoeDetailByID)   // Get shoe detail by ID
+	admin.PUT("/shoe-details/:id", handlers.UpdateShoeDetail)    // Update shoe detail
+	admin.DELETE("/shoe-details/:id", handlers.DeleteShoeDetail) // Delete shoe detail
 
 	// Customer routes
 	customer := e.Group("/customer")
-	customer.GET("/products", handlers.GetProductsForCustomer)
-	customer.GET("/products/:id", handlers.GetProductForCustomerByID)
+	customer.GET("/shoe-details", handlers.GetShoeDetailsForCustomer)        // Get shoe details for customer
+	customer.GET("/shoe-details/:id", handlers.GetShoeDetailForCustomerByID) // Get specific shoe detail for customer
 
 	// Start the server
 	e.Logger.Fatal(e.Start(":50052"))
