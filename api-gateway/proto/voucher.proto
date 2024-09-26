@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option go_package = "/proto";
+
+import "google/protobuf/empty.proto";
+
+service VoucherService {
+  rpc AddVoucher(AddVoucherRequest) returns (AddVoucherResponse);
+  rpc GetVoucher(GetVoucherRequest) returns (GetVoucherResponse);
+  rpc GetVoucherList(google.protobuf.Empty) returns (GetVoucherListResponse);
+}
+
+message AddVoucherRequest {
+  string voucherId = 1;
+  double discount = 2; // Use double instead of dedcimal(10,2)
+  string validUntil = 3; // Use string for date or handle with Timestamp in your code
+}
+
+message AddVoucherResponse {
+  string message = 1;
+}
+
+message GetVoucherRequest {
+  string voucherId = 1;
+}
+
+message GetVoucherResponse {
+  string voucherId = 1;
+  double discount = 2;
+  string validUntil = 3;
+  bool used = 4;
+}
+
+message GetVoucherListResponse {
+  repeated Voucher vouchers = 1; // List of vouchers
+}
+
+message Voucher {
+  string voucherId = 1;
+  double discount = 2;
+  string validUntil = 3;
+  bool used = 4;
+}

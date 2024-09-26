@@ -4,7 +4,10 @@ import (
 	"api-gateway/api"
 	pb "api-gateway/proto"
 	"api-gateway/service/carts"
+	"api-gateway/service/deliveries"
+	"api-gateway/service/orders"
 	"api-gateway/service/users"
+	"api-gateway/service/vouchers"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc"
@@ -32,9 +35,18 @@ func main() {
 	cartClient := pb.NewCartServiceClient(orderConn)
 	cartService := carts.NewCartService(cartClient)
 
+	orderClient := pb.NewOrderServiceClient(orderConn)
+	orderService := orders.NewOrderService(orderClient)
+
+	deliveryClient := pb.NewDeliveryServiceClient(orderConn)
+	deliveryService := deliveries.NewDeliveryService(deliveryClient)
+
+	voucherClient := pb.NewVoucherServiceClient(orderConn)
+	voucherService := vouchers.NewVoucherService(voucherClient)
+
 	e := echo.New()
 
-	api.Init(e, userService, cartService)
+	api.Init(e, userService, cartService, orderService, deliveryService, voucherService)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }
