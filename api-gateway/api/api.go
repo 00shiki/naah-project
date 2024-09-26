@@ -4,6 +4,7 @@ import (
 	"api-gateway/api/routes"
 	VALIDATOR_PKG "api-gateway/pkg/validator"
 	"api-gateway/service/carts"
+	"api-gateway/service/deliveries"
 	"api-gateway/service/orders"
 	"api-gateway/service/users"
 	"github.com/go-playground/validator"
@@ -12,7 +13,7 @@ import (
 	"net/http"
 )
 
-func Init(e *echo.Echo, us users.Service, cs carts.Service, os orders.Service) {
+func Init(e *echo.Echo, us users.Service, cs carts.Service, os orders.Service, ds deliveries.Service) {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
@@ -28,4 +29,5 @@ func Init(e *echo.Echo, us users.Service, cs carts.Service, os orders.Service) {
 	routes.UserRoute(g, us)
 	routes.CartRoute(g, cs)
 	routes.OrderRoute(g, os)
+	routes.DeliveryRoute(g, ds)
 }
