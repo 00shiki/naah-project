@@ -16,7 +16,7 @@ type Order struct {
 	TotalPrice  int32
 	Delivery    deliveries.Delivery
 	Metadata    string
-	OrderItems  []products.Product
+	OrderItems  []products.ShoeDetail
 	InvoiceUrl  string
 	ExpiredDate string
 }

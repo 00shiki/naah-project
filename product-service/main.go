@@ -28,6 +28,7 @@ func main() {
 	admin.GET("/shoe-models/:id", handlers.GetShoeModelByID)
 	admin.PUT("/shoe-models/:id", handlers.UpdateShoeModel)
 	admin.DELETE("/shoe-models/:id", handlers.DeleteShoeModel)
+	admin.POST("/shoe-models/:id", handlers.CreateShoeDetail)
 
 	// Customer routes
 	customer := e.Group("/customer")

@@ -21,14 +21,15 @@ type User struct {
 }
 
 type ShoeModel struct {
-	ModelID int    `json:"model_id"`
-	Name    string `json:"name"`
-	Price   int    `json:"price"`
+	ModelID     int          `json:"model_id"`
+	Name        string       `json:"name"`
+	Price       int          `json:"price"`
+	ShoeDetails []ShoeDetail `json:"shoe_details"`
 }
 
 type ShoeDetail struct {
 	ShoeID  int `json:"shoe_id"`
-	ModelID int `json:"model_id"`
+	ModelID int `json:"model_id,omitempty"`
 	Size    int `json:"size"`
 	Stock   int `json:"stock"`
 }
