@@ -5,6 +5,7 @@ import (
 	"api-gateway/entity/products"
 	pb "api-gateway/proto"
 	"context"
+	"log"
 	"time"
 )
 
@@ -19,11 +20,11 @@ func NewOrderService(client pb.OrderServiceClient) *OrderService {
 }
 
 func (os *OrderService) CreateOrder(order *orders.Order) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cartIds := make([]int32, len(order.Delivery.Carts))
-	for i, cart := range order.Delivery.Carts {
-		cartIds[i] = cart.CartID
+	cartIds := make([]int32, len(order.OrderItems))
+	for i, cart := range order.OrderItems {
+		cartIds[i] = cart.ID
 	}
 	req := &pb.AddOrderRequest{
 		UserId:             order.UserID,
@@ -36,6 +37,7 @@ func (os *OrderService) CreateOrder(order *orders.Order) error {
 		OtherFee:           order.Fee,
 		Metadata:           order.Metadata,
 	}
+	log.Print(req.CourierServiceName)
 	res, err := os.client.AddOrder(ctx, req)
 	if err != nil {
 		return err
@@ -58,11 +60,13 @@ func (os *OrderService) UserOrders(userID int32) ([]orders.Order, error) {
 	}
 	userOrders := make([]orders.Order, len(res.Orders))
 	for i, order := range res.Orders {
-		orderItems := make([]products.Product, len(order.Shoes))
+		orderItems := make([]products.ShoeDetail, len(order.Shoes))
 		for j, shoe := range order.Shoes {
-			orderItems[j] = products.Product{
-				Name:  shoe.Name,
-				Price: shoe.Price,
+			orderItems[j] = products.ShoeDetail{
+				Shoe: products.Shoe{
+					Name:  shoe.Name,
+					Price: shoe.Price,
+				},
 				Stock: shoe.Qty,
 				Size:  shoe.Size,
 			}

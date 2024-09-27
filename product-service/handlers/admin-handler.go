@@ -135,6 +135,29 @@ func UpdateShoeModel(c echo.Context) error {
 	return c.JSON(http.StatusOK, shoeModel)
 }
 
+func CreateShoeDetail(c echo.Context) error {
+	modelID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid shoe model ID"})
+	}
+
+	payload := new(models.ShoeDetail)
+	if err := c.Bind(payload); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Invalid input", "error": err.Error()})
+	}
+	query := "INSERT INTO shoe_details (size, stock, model_id) VALUES (?, ?, ?)"
+	result, err := config.DB.Exec(query, payload.Size, payload.Stock, modelID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not create shoe detail", "error": err.Error()})
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not retrieve inserted ID", "error": err.Error()})
+	}
+	payload.ShoeID = int(id)
+	return c.JSON(http.StatusCreated, payload)
+}
+
 // DeleteShoeModel godoc
 // @Summary Delete a shoe model
 // @Description Delete the shoe model with the given ID

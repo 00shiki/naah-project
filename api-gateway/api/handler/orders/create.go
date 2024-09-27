@@ -36,9 +36,9 @@ func (handler *Controller) Create(c echo.Context) error {
 		return responses.HandleResponse(c, res)
 	}
 
-	carts := make([]products.Product, len(payload.CartIDs))
+	carts := make([]products.ShoeDetail, len(payload.CartIDs))
 	for i, cartID := range payload.CartIDs {
-		carts[i] = products.Product{
+		carts[i] = products.ShoeDetail{
 			ID: cartID,
 		}
 	}

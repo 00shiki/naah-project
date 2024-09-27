@@ -35,6 +35,20 @@ func GetProductsForCustomer(c echo.Context) error {
 		if err := rows.Scan(&product.ModelID, &product.Name, &product.Price); err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not scan product", "error": err.Error()})
 		}
+		query2 := "SELECT shoe_id, size, stock FROM shoe_details WHERE model_id = ?"
+		rows2, err := config.DB.Query(query2, product.ModelID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch product", "error": err.Error()})
+		}
+		shoeDetails := make([]models.ShoeDetail, 0)
+		for rows2.Next() {
+			var shoeDetail models.ShoeDetail
+			if err := rows2.Scan(&shoeDetail.ShoeID, &shoeDetail.Size, &shoeDetail.Stock); err != nil {
+				return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch product", "error": err.Error()})
+			}
+			shoeDetails = append(shoeDetails, shoeDetail)
+		}
+		product.ShoeDetails = shoeDetails
 		products = append(products, product)
 	}
 	return c.JSON(http.StatusOK, products)
@@ -68,5 +82,19 @@ func GetProductForCustomerByID(c echo.Context) error {
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch product", "error": err.Error()})
 	}
+	query = "SELECT shoe_id, size, stock FROM shoe_details WHERE model_id = ?"
+	rows, err := config.DB.Query(query, id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch product", "error": err.Error()})
+	}
+	shoeDetails := make([]models.ShoeDetail, 0)
+	for rows.Next() {
+		var shoeDetail models.ShoeDetail
+		if err := rows.Scan(&shoeDetail.ShoeID, &shoeDetail.Size, &shoeDetail.Stock); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Could not fetch product", "error": err.Error()})
+		}
+		shoeDetails = append(shoeDetails, shoeDetail)
+	}
+	product.ShoeDetails = shoeDetails
 	return c.JSON(http.StatusOK, product)
 }
