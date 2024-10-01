@@ -3,7 +3,7 @@
 Team Member :
 
 - Ahmad Luhur Pakerti
-- Albertus Marcel
+- Albertus Magnus Marcelino A.
 - Harya Kumuda
 - Nalini
 
